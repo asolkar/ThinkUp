@@ -178,6 +178,20 @@ CREATE TABLE tu_instances_twitter (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Twitter-specific instance metadata.';
 
 --
+-- Table structure for table tu_instances_statusnet
+--
+
+CREATE TABLE tu_instances_statusnet (
+  id int(11) NOT NULL AUTO_INCREMENT COMMENT 'Internal unique ID.',
+  last_page_fetched_replies int(11) NOT NULL DEFAULT '1' COMMENT 'Last page of replies fetched for this instance.',
+  last_page_fetched_tweets int(11) NOT NULL DEFAULT '1' COMMENT 'Last page of tweets fetched for this instance.',
+  last_favorite_id varchar(80) DEFAULT NULL COMMENT 'Last favorite post ID of the instance saved.',
+  last_unfav_page_checked int(11) DEFAULT '0' COMMENT 'Last page of older favorites checked for backfilling.',
+  last_page_fetched_favorites int(11) DEFAULT NULL COMMENT 'Last page of favorites fetched.',
+  PRIMARY KEY (id)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='StatusNet-specific instance metadata.';
+
+--
 -- Table structure for table tu_invites
 --
 

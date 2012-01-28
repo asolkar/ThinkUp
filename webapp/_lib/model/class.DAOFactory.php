@@ -60,6 +60,11 @@ class DAOFactory {
         'TwitterInstanceDAO' => array(
     //MySQL Version
             'mysql' => 'TwitterInstanceMySQLDAO' ),
+    //@TODO Figure out a way to let a plugin define its DAOs in the plugin code
+    //StatusNet Instance DAO
+        'StatusNetInstanceDAO' => array(
+    //MySQL Version
+            'mysql' => 'StatusNetInstanceMySQLDAO' ),
     //Invite DAO
         'InviteDAO' => array(
     //MySQL Version
