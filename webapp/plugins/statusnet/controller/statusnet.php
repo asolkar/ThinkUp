@@ -1,12 +1,12 @@
 <?php
 /*
  Plugin Name: StatusNet
- Plugin URI: http://github.com/ginatrapani/thinkup/tree/master/webapp/plugins/statusnet/
- Description: Capture and display tweets.
+ Plugin URI: http://github.com/asolkar/thinkup/tree/master/webapp/plugins/statusnet/
+ Description: Capture and display notices.
  Icon: assets/img/statusnet_icon.png
  Class: StatusNetPlugin
  Version: 0.01
- Author: Gina Trapani
+ Author: Mahesh Asolkar <mahesh[at]mahesha[dot]com>
  */
 
 /**
