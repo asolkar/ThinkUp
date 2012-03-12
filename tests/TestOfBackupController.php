@@ -26,10 +26,10 @@
  * @copyright 2009-2012 Mark Wilkie
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 if (!class_exists('BackupDAO')) {
-    require_once THINKUP_ROOT_PATH.'webapp/_lib/model/interface.BackupDAO.php';
+    require_once THINKUP_WEBAPP_PATH.'_lib/model/interface.BackupDAO.php';
 }
 
 class TestOfBackupController extends ThinkUpUnitTestCase {
@@ -39,9 +39,9 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
         new BackupMySQLDAO();
         $this->config = Config::getInstance();
         $this->pdo = BackupMySQLDAO::$PDO;
-        $this->backup_file = THINKUP_WEBAPP_PATH . BackupDAO::CACHE_DIR . '/.htthinkup_db_backup.zip';
-        $this->backup_test = THINKUP_WEBAPP_PATH . BackupDAO::CACHE_DIR . '/thinkup_db_backup_test.zip';
-        $this->backup_dir = THINKUP_WEBAPP_PATH . BackupDAO::CACHE_DIR . '/backup';
+        $this->backup_file = FileDataManager::getDataPath('.htthinkup_db_backup.zip');
+        $this->backup_test = FileDataManager::getDataPath('thinkup_db_backup_test.zip');
+        $this->backup_dir = FileDataManager::getBackupPath() . '/';
     }
 
     public function tearDown() {
@@ -53,7 +53,7 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
             unlink($this->backup_test);
         }
         if (file_exists($this->backup_dir)) {
-            unlink($this->backup_dir);
+            rmdir($this->backup_dir);
         }
 
         //set zip class requirement class name back
@@ -154,16 +154,17 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
             $zip_files[$zfile['name']] = $zfile['name'];
         }
         //verify we have create table file
-        $this->assertTrue($zip_files["create_tables.sql"]);
+        $this->assertTrue(isset($zip_files["create_tables.sql"]));
         $za->close();
         $q = "show tables";
         $q2 = "show create table ";
         $stmt = $this->pdo->query($q);
         // verify we have all table files
+
         while($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             foreach($data as $key => $value) {
                 $zfile = '/' . $value .'.txt';
-                $this->assertTrue($zip_files[$zfile]);
+                $this->assertTrue(isset($zip_files[$zfile]));
             }
         }
     }
@@ -198,14 +199,14 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
         $this->assertPattern("/Backup file upload failed./", $results);
 
         // upload bad archive file
-        $zipfile = 'tests/data/backup/bad-zip-archive.zip';
+        $zipfile = dirname(__FILE__) . '/data/backup/bad-zip-archive.zip';
         $_FILES["backup_file"]["tmp_name"] = $zipfile;
         $_FILES['backup_file']["error"] = 0;
         $results = $controller->go();
         $this->assertPattern("/Unable to open import file, corrupted zip file/is", $results);
 
         // upload bad archive file,, valid zip file, but not the right data
-        $zipfile = 'tests/data/backup/bad-zip-archive2.zip';
+        $zipfile = dirname(__FILE__) . '/data/backup/bad-zip-archive2.zip';
         $_FILES["backup_file"]["tmp_name"] = $zipfile;
         $_FILES['backup_file']["error"] = 0;
         $results = $controller->go();
@@ -216,8 +217,10 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
         // create export
         $dao = new BackupMySQLDAO();
         $export_file = $dao->export();
+        $config = Config::getInstance();
+        $table_prefix = $config->getValue('table_prefix');
 
-        $this->pdo->query("drop table tu_plugins");
+        $this->pdo->query("drop table " . $table_prefix . "plugins");
 
         $this->simulateLogin('me@example.com', true);
         $controller = new BackupController(true);
@@ -229,12 +232,12 @@ class TestOfBackupController extends ThinkUpUnitTestCase {
         $results = $controller->go();
         $this->assertPattern("/Data Import Successfull/is", $results);
 
-        $stmt = $this->pdo->query("show create table tu_plugins");
+        $stmt = $this->pdo->query("show create table " . $table_prefix . "plugins");
         $data = $stmt->fetch();
         $stmt->closeCursor();
-        $this->assertEqual($data['Table'], 'tu_plugins');
+        $this->assertEqual($data['Table'], $table_prefix . 'plugins');
 
-        $stmt = $this->pdo->query("select * from tu_plugins");
+        $stmt = $this->pdo->query("select * from " . $table_prefix . "plugins");
 
         $data = $stmt->fetch();
         $this->assertEqual($data['id'], 1);

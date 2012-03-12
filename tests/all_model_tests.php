@@ -25,10 +25,10 @@
  * @license http://www.gnu.org/licenses/gpl.html
  * @copyright 2009-2012 Gina Trapani
  */
-include 'init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/web_tester.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/mock_objects.php';
+include dirname(__FILE__) . '/init.tests.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/web_tester.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/mock_objects.php';
 
 /* MODEL TESTS */
 $model_tests = new TestSuite('Model tests');
@@ -36,6 +36,7 @@ $model_tests->add(new TestOfLogger());
 $model_tests->add(new TestOfPDOCorePluginDAO());
 $model_tests->add(new TestOfDAOFactory());
 $model_tests->add(new TestOfConfig());
+$model_tests->add(new TestOfFileDataManager());
 $model_tests->add(new TestOfCrawler());
 $model_tests->add(new TestOfFollowMySQLDAO());
 $model_tests->add(new TestOfFollowerCountMySQLDAO());
@@ -84,6 +85,7 @@ $model_tests->add(new TestOfPlaceMySQLDAO());
 $model_tests->add(new TestOfPDODAO());
 $model_tests->add(new TestOfURLProcessor());
 $model_tests->add(new TestOfTableStatsMySQLDAO());
+$model_tests->add(new TestOfShortLinkMySQLDAO());
 
 $tr = new TextReporter();
 list($usec, $sec) = explode(" ", microtime());

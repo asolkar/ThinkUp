@@ -26,8 +26,8 @@
  * @copyright 2009-2012 Gina Trapani
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/web_tester.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/web_tester.php';
 
 class WebTestOfCSRFToken extends ThinkUpWebTestCase {
     public function setUp() {
@@ -63,7 +63,8 @@ class WebTestOfCSRFToken extends ThinkUpWebTestCase {
 
         //Open setting page
         $this->click("Settings");
-        $this->assertTitle("Configure Your Account | ThinkUp");
+        $this->assertTitle("Configure Your Account | " .  Config::getInstance()->getValue('app_title_prefix') .
+        "ThinkUp");
         $this->assertText('Logged in as admin: me@example.com');
 
         // look for global js token

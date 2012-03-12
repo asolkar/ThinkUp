@@ -31,12 +31,6 @@
 interface BackupDAO {
 
     /**
-     *
-     * @var const db export dir
-     */
-    const CACHE_DIR = '_lib/view/compiled_view';
-
-    /**
      * Export database to tmp dir
      * @param $str Backup File (optional)
      * @return $str Path to backup file

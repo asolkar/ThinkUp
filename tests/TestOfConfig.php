@@ -28,8 +28,8 @@
  */
 
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfConfig extends ThinkUpUnitTestCase {
 
@@ -56,8 +56,8 @@ class TestOfConfig extends ThinkUpUnitTestCase {
     }
 
     public function testGetValuesArray() {
-        require THINKUP_ROOT_PATH.'webapp/config.inc.php';
-        require THINKUP_ROOT_PATH.'webapp/install/version.php';
+        require THINKUP_WEBAPP_PATH.'config.inc.php';
+        require THINKUP_WEBAPP_PATH.'install/version.php';
         $config = Config::getInstance();
         //tests assume profiler and caching is off
         $THINKUP_CFG['cache_pages']=false;
@@ -152,6 +152,15 @@ class TestOfConfig extends ThinkUpUnitTestCase {
         $this->assertEqual($config->getGMTOffset('January 1, 2010'), -5);
         $this->assertEqual($config->getGMTOffset('August 1, 2010'), -4);
 
+        $this->restoreConfigFile();
+    }
+
+    public function testGetUnsetDefaultValue() {
+        Config::destroyInstance();
+        $this->removeConfigFile();
+        $config = Config::getInstance(array('timezone' => 'America/Los_Angeles'));
+        $this->assertEqual($config->getValue('app_title_prefix'), '');
+        $this->assertNotNull($config->getValue('app_title_prefix'));
         $this->restoreConfigFile();
     }
 }

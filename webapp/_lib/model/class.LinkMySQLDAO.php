@@ -49,7 +49,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
         return $this->getInsertId($ps);
     }
 
-    public function saveExpandedURL($url, $expanded, $title = '', $image_src = '', $click_count = null ){
+    public function saveExpandedURL($url, $expanded, $title = '', $image_src = '' ){
         $vars = array(
             ':url'=>$url,
             ':expanded'=>$expanded,
@@ -57,12 +57,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':image_src'=>$image_src
         );
         $q  = "UPDATE #prefix#links ";
-        $q .= "SET expanded_url=:expanded, title=:title, image_src=:image_src ";
-        if (isset($click_count)) {
-            $q .= ", clicks=:clicks ";
-            $vars[':clicks'] = $click_count;
-        }
-        $q .= "WHERE url=:url ";
+        $q .= "SET expanded_url=:expanded, title=:title, image_src=:image_src WHERE url=:url ";
         if ($this->profiler_enabled) Profiler::setDAOMethod(__METHOD__);
         $ps = $this->execute($q, $vars);
 
@@ -87,9 +82,9 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
 
         $ret = $this->getUpdateCount($ps);
         if ($ret > 0) {
-            $this->logger->logInfo("Error '$error_text' saved for $url", __METHOD__.','.__LINE__);
+            $this->logger->logInfo("Error ".$error_text." saved for $url", __METHOD__.','.__LINE__);
         } else {
-            $this->logger->logInfo("Error '$error_text' for URL NOT saved", __METHOD__.','.__LINE__);
+            $this->logger->logInfo("Error ".$error_text." for ".$url." was NOT saved", __METHOD__.','.__LINE__);
         }
         return $ret;
     }
@@ -226,9 +221,9 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
     }
 
     public function getLinksToExpand($limit = 1500) {
-        $q  = "SELECT l1.url AS url ";
+        $q  = "SELECT * ";
         $q .= "FROM (  ";
-        $q .= "   SELECT l.url, l.post_key ";
+        $q .= "   SELECT * ";
         $q .= "   FROM #prefix#links AS l ";
         $q .= "   WHERE l.expanded_url = '' and l.error = '' ";
         $q .= "   ORDER BY id DESC LIMIT :limit ";
@@ -240,12 +235,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
         if ($this->profiler_enabled) Profiler::setDAOMethod(__METHOD__);
         $ps = $this->execute($q, $vars);
 
-        $rows = $this->getDataRowsAsArrays($ps);
-        $urls = array();
-        foreach($rows as $row){
-            $urls[] = $row['url'];
-        }
-        return $urls;
+        return $this->getDataRowsAsObjects($ps, 'Link');
     }
 
     public function getLinksToExpandByURL($url, $limit = 0) {
@@ -308,5 +298,18 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
         );
         $ps = $this->execute($q, $vars);
         return $this->getDataRowsAsObjects($ps, "Link");
+    }
+
+    public function updateTitle($id, $title) {
+        $q  = "UPDATE #prefix#links SET title=:title WHERE id=:id;";
+        $vars = array(
+            ':title'=>$title,
+            ':id'=>$id
+        );
+        if ($this->profiler_enabled) Profiler::setDAOMethod(__METHOD__);
+
+        $ps = $this->execute($q, $vars);
+
+        return $this->getUpdateCount($ps);
     }
 }

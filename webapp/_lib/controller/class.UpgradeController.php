@@ -56,11 +56,6 @@ class UpgradeController extends ThinkUpAuthController {
     const MIGRATION_DIR = 'install/sql/mysql_migrations';
 
     /**
-     * cache dir. We will write an upgrade auth token here if needed.
-     */
-    const CACHE_DIR = '_lib/view/compiled_view';
-
-    /**
      * token key
      */
     const TOKEN_KEY = 'a_token_key';
@@ -82,9 +77,7 @@ class UpgradeController extends ThinkUpAuthController {
     }
 
     public function authControl() {
-
         $this->disableCaching();
-        Utils::defineConstants();
         $config = Config::getInstance();
         $thinkup_db_version = $config->getValue('THINKUP_VERSION');
 
@@ -163,13 +156,14 @@ class UpgradeController extends ThinkUpAuthController {
      * Delete token file if it exists
      */
     public function deleteTokenFile() {
-        if (file_exists(THINKUP_WEBAPP_PATH . self::CACHE_DIR . '/.htupgrade_token')) {
-            unlink(THINKUP_WEBAPP_PATH . self::CACHE_DIR . '/.htupgrade_token');
+        $file = FileDataManager::getDataPath('.htupgrade_token');
+        if (file_exists($file)) {
+            unlink($file);
         }
     }
 
     /**
-     * Determin if ThinkUp needs to show the upgrading page.
+     * Determine if ThinkUp needs to show the upgrading page.
      * @param bool Is the current user an admin
      * @param str The calling classname
      * @return bool Whether or not we need to show the upgrade page
@@ -214,7 +208,7 @@ class UpgradeController extends ThinkUpAuthController {
      * @return bool True if the token is valid
      */
     public static function isTokenAuth($query_token) {
-        $token_file = THINKUP_WEBAPP_PATH . self::CACHE_DIR . '/.htupgrade_token';
+        $token_file = FileDataManager::getDataPath('.htupgrade_token');
         $status = false;
         if (file_exists($token_file)) {
             $file_token = file_get_contents($token_file);
@@ -315,7 +309,7 @@ class UpgradeController extends ThinkUpAuthController {
      * Generates a one time upgrade token, and emails admins with the token info.
      */
     public function generateUpgradeToken() {
-        $token_file = THINKUP_WEBAPP_PATH . self::CACHE_DIR . '/.htupgrade_token';
+        $token_file = FileDataManager::getDataPath('.htupgrade_token');
         $md5_token = '';
         if (! file_exists($token_file)) {
             $fp = fopen($token_file, 'w');

@@ -28,8 +28,8 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  *
  */
-require_once 'tests/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
+require_once dirname(__FILE__) . '/../../../../tests/init.tests.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
 
 require_once THINKUP_ROOT_PATH.
 'webapp/plugins/expandurls/controller/class.ExpandURLsPluginConfigurationController.php';

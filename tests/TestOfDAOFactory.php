@@ -30,9 +30,9 @@
  *
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
-require_once THINKUP_ROOT_PATH.'webapp/plugins/twitter/model/class.TwitterInstanceMySQLDAO.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'plugins/twitter/model/class.TwitterInstanceMySQLDAO.php';
 
 class TestOfDAOFactory extends ThinkUpUnitTestCase {
 
@@ -43,14 +43,17 @@ class TestOfDAOFactory extends ThinkUpUnitTestCase {
 
     protected function buildData() {
         $builders = array();
-         
+
         // test table for our test dao
         $test_table_sql = 'CREATE TABLE tu_test_table(' .
-            'id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,' . 
+            'id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,' .
             'test_name varchar(20),' .
             'test_id int(11),' .
             'unique key test_id_idx (test_id)' .
             ')';
+        if (ThinkUpTestDatabaseHelper::$prefix != 'tu_') {
+            $test_table_sql = str_replace('tu_', ThinkUpTestDatabaseHelper::$prefix, $test_table_sql);
+        }
         $this->testdb_helper->runSQL($test_table_sql);
 
         //some test data as well
@@ -187,7 +190,7 @@ class TestOfDAOFactory extends ThinkUpUnitTestCase {
     public function testGetOwnerDAONoConfigFile(){
         $this->removeConfigFile();
         Config::destroyInstance();
-        $cfg_values = array("table_prefix"=>"tu_", "db_host"=>"localhost");
+        $cfg_values = array("table_prefix"=>ThinkUpTestDatabaseHelper::$prefix, "db_host"=>"localhost");
         $config = Config::getInstance($cfg_values);
         $dao = DAOFactory::getDAO('OwnerDAO', $cfg_values);
         $this->assertTrue(isset($dao));
@@ -361,13 +364,16 @@ class TestOfDAOFactory extends ThinkUpUnitTestCase {
         $this->assertIsA($dao, 'GroupMembershipCountMySQLDAO');
     }
 
-    /**
-     * Test get TableStatsDAO
-     */
     public function testGetTableStatsDAO() {
         $dao = DAOFactory::getDAO('TableStatsDAO');
         $this->assertNotNull($dao);
         $this->assertIsA($dao, 'TableStatsMySQLDAO');
+    }
+
+    public function testGetShortLinkDAO() {
+        $dao = DAOFactory::getDAO('ShortLinkDAO');
+        $this->assertNotNull($dao);
+        $this->assertIsA($dao, 'ShortLinkMySQLDAO');
     }
     /**
      * Test get InstallerDAO without a config file, override with array of config values
@@ -375,13 +381,13 @@ class TestOfDAOFactory extends ThinkUpUnitTestCase {
     public function testGetInstallerDAONoConfigFile(){
         $this->removeConfigFile();
         Config::destroyInstance();
-        $cfg_values = array("table_prefix"=>"tu_", "db_host"=>"localhost");
+        $cfg_values = array("table_prefix"=>ThinkUpTestDatabaseHelper::$prefix, "db_host"=>"localhost");
         $config = Config::getInstance($cfg_values);
         $dao = DAOFactory::getDAO('InstallerDAO', $cfg_values);
         $this->assertTrue(isset($dao));
         $this->assertIsA($dao, 'InstallerMySQLDAO');
         $result = $dao->getTables();
-        $this->assertEqual(sizeof($result), 28);
+        $this->assertEqual(sizeof($result), 29);
         $this->assertEqual($result[0], $cfg_values["table_prefix"].'encoded_locations');
         $this->restoreConfigFile();
     }

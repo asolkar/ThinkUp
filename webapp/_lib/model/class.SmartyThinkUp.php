@@ -30,6 +30,7 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  *
  */
+
 class SmartyThinkUp extends Smarty {
     /**
      * @var boolean
@@ -95,17 +96,17 @@ class SmartyThinkUp extends Smarty {
 
         $src_root_path = $config_array['source_root_path'];
         $site_root_path = $config_array['site_root_path'];
-        $app_title = $config_array['app_title'];
+        $app_title = $config_array['app_title_prefix'] . 'ThinkUp';
         $cache_pages = $config_array['cache_pages'];
         $cache_lifetime = isset($config_array['cache_lifetime'])?$config_array['cache_lifetime']:600;
         $debug =  $config_array['debug'];
-        Utils::defineConstants();
+        Loader::definePathConstants();
 
         $this->Smarty();
         $this->template_dir = array( THINKUP_WEBAPP_PATH.'_lib/view', $src_root_path.'tests/view');
-        $this->compile_dir = THINKUP_WEBAPP_PATH.'_lib/view/compiled_view/';
+        $this->compile_dir = FileDataManager::getDataPath('compiled_view');
         $this->plugins_dir = array('plugins', THINKUP_WEBAPP_PATH.'_lib/view/plugins/');
-        $this->cache_dir = THINKUP_WEBAPP_PATH.'_lib/view/compiled_view/cache';
+        $this->cache_dir = $this->compile_dir . '/cache';
         $this->caching = ($cache_pages)?1:0;
         $this->cache_lifetime = $cache_lifetime;
         $this->debug = $debug;
@@ -266,6 +267,15 @@ class SmartyThinkUp extends Smarty {
      */
     public function fetch($template, $cache_key=null, $compile_id=null, $display=false) {
         $continue = false;
+        if (is_writable(FileDataManager::getDataPath())) {
+            if (!file_exists($this->compile_dir)) {
+                if (mkdir($this->compile_dir, 0777)) {
+                    $continue = true;
+                }
+            } else {
+                $continue = true;
+            }
+        }
         if (is_writable($this->compile_dir)) {
             if ($this->caching == 1 && !file_exists($this->compile_dir.'/cache')) {
                 if (mkdir($this->compile_dir.'/cache/', 0777)) {
@@ -278,13 +288,13 @@ class SmartyThinkUp extends Smarty {
         if ($continue) {
             return parent::fetch($template, $cache_key, $compile_id, $display);
         } else {
-            Utils::defineConstants();
+            Loader::definePathConstants();
             $whoami = @exec('whoami');
             if (empty($whoami)) {
                 $whoami = 'nobody';
             }
             return str_replace(array('#THINKUP_BASE_URL#', '#WHOAMI#', '#COMPILE_DIR#'),
-            array(THINKUP_BASE_URL, $whoami, $this->compile_dir),
+            array(Utils::getSiteRootPathFromFileSystem(), $whoami, FileDataManager::getDataPath()),
             file_get_contents(THINKUP_WEBAPP_PATH.'_lib/view/500-perm.html'));
         }
     }
@@ -300,4 +310,5 @@ class SmartyThinkUp extends Smarty {
             parent::clear_all_cache($exp_time);
         }
     }
+
 }

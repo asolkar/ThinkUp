@@ -9,7 +9,8 @@ Back Up and Restore ThinkUp's Entire Database
 ThinkUp provides both a web-based and command line tool for backing up your installation's data. The best method
 depends on how large your ThinkUp installation's database has grown.
 
-**Small Databases: Web-Based Backup (Logged-in admin only)** 
+Small Databases: Web-Based Backup (Logged-in admin only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
 If your ThinkUp installation only has 1 or 2 moderately active social media accounts set up in it, and none of your
 database tables have more than a half million rows, then you should use the easy web-based backup tool. ThinkUp will
@@ -22,7 +23,8 @@ the "Backup ThinkUp's database" link. On the Backup page, click on the "Backup N
 The web based backup tool has two permissions requirements. 
 
 1. Your ThinkUp installation's database user must have "GRANT FILE ON" permissions
-2. The MySQL user must have write permissions to the ``thinkup/_lib/view/compiled_view`` directory.
+2. The MySQL user must have write permissions to the data directory (``data`` by default, or defined in 
+   ``config.inc.php``'s ``$THINKUP_CFG['datadir_path']`` value).
 
 If you don't have those permissions, you can use `mysqldump` or a tool like phpMyAdmin to back up your database
 manually.
@@ -30,7 +32,8 @@ manually.
 When running a web-based backup, here's what to do if you see the error :doc:`Can't create/write to file
 </troubleshoot/common/backupcannotwrite>`.
 
-**Large Databases: Command Line Backup** 
+Large Databases: Command Line Backup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If your ThinkUp installation has more than 2 very active social media accounts set up, chances are your database tables
 are large. (We consider a ThinkUp database with any table over half a million rows large.)
@@ -46,7 +49,8 @@ Then, run:
 
 This command will back up your current database.
 
-**Restore Your ThinkUp Backup**
+Restore Your ThinkUp Backup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In :doc:`Settings>Application
 </userguide/settings/application>`, you can upload a ThinkUp backup file under the "Restore Your Thinkup Database."

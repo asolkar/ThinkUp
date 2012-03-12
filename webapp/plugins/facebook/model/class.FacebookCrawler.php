@@ -311,7 +311,7 @@ class FacebookCrawler {
                         $link_url = (isset($p->source))?$p->source:$p->link;
                         $link = new Link(array(
                         "url"=>$link_url,
-                        "expanded_url"=>$link_url,
+                        "expanded_url"=>'',
                         "image_src"=>(isset($p->picture))?$p->picture:'',
                         "caption"=>(isset($p->caption))?$p->caption:'',
                         "description"=>(isset($p->description))?$p->description:'',
@@ -390,7 +390,8 @@ class FacebookCrawler {
                             //$this->logger->logInfo("API call ".$api_call, __METHOD__.','.__LINE__);
                             do {
                                 $comments_stream = FacebookGraphAPIAccessor::rawApiRequest($api_call);
-                                if (isset($comments_stream) && is_array($comments_stream->data)) {
+                                if (isset($comments_stream) && isset($comments_stream->data)
+                                && is_array($comments_stream->data)) {
                                     foreach ($comments_stream->data as $c) {
                                         if (isset($c->from)) {
                                             $comment_id = explode("_", $c->id);
@@ -643,32 +644,33 @@ class FacebookCrawler {
         $network = ($user_id == $this->instance->network_user_id)?$this->instance->network:'facebook';
         $friends = FacebookGraphAPIAccessor::apiRequest('/' . $user_id . '/friends', $access_token);
 
-        //store relationships in follows table
-        $follows_dao = DAOFactory::getDAO('FollowDAO');
-        $follower_count_dao = DAOFactory::getDAO('FollowerCountDAO');
-        $user_dao = DAOFactory::getDAO('UserDAO');
+        if (isset($friends->data)) {
+            //store relationships in follows table
+            $follows_dao = DAOFactory::getDAO('FollowDAO');
+            $follower_count_dao = DAOFactory::getDAO('FollowerCountDAO');
+            $user_dao = DAOFactory::getDAO('UserDAO');
 
-        foreach ($friends->data as $friend) {
-            $follower_id = $friend->id;
-            if ($follows_dao->followExists($user_id, $follower_id, $network)) {
-                // follow relationship already exists
-                $follows_dao->update($user_id, $follower_id, $network);
-            } else {
-                // follow relationship does not exist yet
-                $follows_dao->insert($user_id, $follower_id, $network);
+            foreach ($friends->data as $friend) {
+                $follower_id = $friend->id;
+                if ($follows_dao->followExists($user_id, $follower_id, $network)) {
+                    // follow relationship already exists
+                    $follows_dao->update($user_id, $follower_id, $network);
+                } else {
+                    // follow relationship does not exist yet
+                    $follows_dao->insert($user_id, $follower_id, $network);
+                }
+
+                //and users in users table.
+                $follower_details = FacebookGraphAPIAccessor::apiRequest('/'.$follower_id, $this->access_token);
+                $follower_details->network = $network;
+
+                $follower = $this->parseUserDetails($follower_details);
+                $follower_object = new User($follower);
+
+                $user_dao->updateUser($follower_object);
             }
-
-            //and users in users table.
-            $follower_details = FacebookGraphAPIAccessor::apiRequest('/'.$follower_id, $this->access_token);
-            $follower_details->network = $network;
-
-            $follower = $this->parseUserDetails($follower_details);
-            $follower_object = new User($follower);
-
-            $user_dao->updateUser($follower_object);
+            //totals in follower_count table
+            $follower_count_dao->insert($user_id, $network, count($friends->data));
         }
-
-        //totals in follower_count table
-        $follower_count_dao->insert($user_id, $network, count($friends->data));
     }
 }

@@ -39,7 +39,7 @@ class TwitterPluginConfigurationController extends PluginConfigurationController
 
     public function authControl() {
         $config = Config::getInstance();
-        Utils::defineConstants();
+        Loader::definePathConstants();
         $this->setViewTemplate(THINKUP_WEBAPP_PATH.'plugins/twitter/view/twitter.account.index.tpl');
         $this->view_mgr->addHelp('twitter', 'userguide/settings/plugins/twitter');
 
@@ -117,6 +117,8 @@ class TwitterPluginConfigurationController extends PluginConfigurationController
 
                 $this->addToView('owner_instances', $owner_instances);
                 $this->addToView('oauthorize_link', $oauthorize_link);
+                $this->addToView('twitter_app_name', "ThinkUp ". $_SERVER['SERVER_NAME']);
+                $this->addToView('thinkup_site_url', Utils::getApplicationURL());
                 $this->addToView('is_configured', true);
             } else {
                 //set error message here

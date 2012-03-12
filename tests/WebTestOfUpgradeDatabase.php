@@ -26,9 +26,9 @@
  * @copyright 2009-2012 Mark Wilkie
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/web_tester.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/web_tester.php';
 
 class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
 
@@ -44,7 +44,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         $optiondao = new OptionMySQLDAO();
         $this->pdo = OptionMySQLDAO::$PDO;
 
-        $this->install_dir = THINKUP_ROOT_PATH.'webapp/test_installer';
+        $this->install_dir = THINKUP_WEBAPP_PATH.'test_installer';
         $this->installs_dir = THINKUP_ROOT_PATH.'build';
         // Make sure test_installer and build directories exists
         if (!file_exists($this->install_dir)) {
@@ -55,7 +55,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         }
 
         //Clean up files from test installation
-        exec('rm -rf ' . THINKUP_ROOT_PATH.'webapp/test_installer' . '/*');
+        exec('rm -rf ' . THINKUP_WEBAPP_PATH.'test_installer' . '/*');
 
         $config = Config::getInstance();
         $this->table_prefix = $config->getValue('table_prefix');
@@ -68,7 +68,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
 
     public function tearDown() {
         //Clean up test installation files
-        exec('rm -rf ' . THINKUP_ROOT_PATH.'webapp/test_installer' . '/*');
+        exec('rm -rf ' . THINKUP_WEBAPP_PATH.'test_installer' . '/*');
 
         // Delete test database created during installation process
         require THINKUP_WEBAPP_PATH.'config.inc.php';
@@ -83,7 +83,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
 
     public function testMigrations() {
         // run updates and migrations
-        require 'tests/migration-assertions.php';
+        require dirname(__FILE__) . '/migration-assertions.php';
         $migrations_count = count($MIGRATIONS);
         $migration_versions = array();
         foreach($MIGRATIONS as  $version => $migration_data) {
@@ -132,7 +132,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         $data = $this->setUpApp('0.9', $MIGRATIONS);
         $this->runMigrations($run_migrations, '0.9', $fail_10 = 1);
 
-        $stmt = $this->pdo->query("select * from tu_completed_migrations");
+        $stmt = $this->pdo->query("select * from " . $this->table_prefix . "completed_migrations");
         $data = $stmt->fetchAll();
         $this->assertEqual(count($data), 1);
         $this->assertEqual($data[0]['migration'], '2011-04-19-0');
@@ -146,7 +146,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
 
         $stmt = $this->pdo->query("select * from " . $this->table_prefix . "completed_migrations");
         $data = $stmt->fetchAll();
-        $this->assertEqual(count($data), 200);
+        $this->assertEqual(count($data), 203);
     }
 
     /**
@@ -154,7 +154,7 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
      */
     private function setUpApp($version, $MIGRATIONS) {
         // run updates and migrations
-        require 'tests/migration-assertions.php';
+        require dirname(__FILE__) . '/migration-assertions.php';
         $this->debug("Setting up base install for upgrade: $version");
         $zip_url = $MIGRATIONS[$version]['zip_url'];
 
@@ -162,10 +162,10 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         //install beta 1
         $zipfile = $this->getInstall($zip_url, $version, $this->installs_dir);
         //Extract into test_installer directory and set necessary folder permissions
+        chdir(dirname(__FILE__) . '/../');
         exec('cp ' . $zipfile .  ' webapp/test_installer/.;'.
         'cd webapp/test_installer/;'.
-        'unzip ' . $zipfile . ';chmod -R 777 thinkup');
-
+        'unzip ' . $zipfile . ';mkdir -p thinkup/data/compiled_view;chmod -R 777 thinkup;');
         //Config file doesn't exist
         $this->assertFalse(file_exists($THINKUP_CFG['source_root_path'].
         'webapp/test_installer/thinkup/config.inc.php'));
@@ -182,7 +182,6 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         $this->assertText('ThinkUp\'s configuration file does not exist! Try installing ThinkUp.');
         $this->clickLink("installing ThinkUp.");
         $this->assertText('Great! Your system has everything it needs to run ThinkUp.');
-
         //Set test mode
         putenv("MODE=TESTS");
         //Include config again to get test db credentials
@@ -202,19 +201,14 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
         $this->setField('db_user', $THINKUP_CFG['db_user']);
         $this->setField('db_passwd', $THINKUP_CFG['db_password']);
         $this->setField('db_socket', $THINKUP_CFG['db_socket']);
+        $this->setField('db_prefix', $THINKUP_CFG['table_prefix']);
         $this->clickSubmitByName('Submit');
 
         $this->assertText('ThinkUp has been installed successfully. Check your email account; an account activation '.
         'message has been sent.');
-
         //Config file has been written
         $this->assertTrue(file_exists($THINKUP_CFG['source_root_path'].
-        'webapp/test_installer/thinkup/config.inc.php'));
-
-        //Test bad activation code
-        $this->get($this->url.'/test_installer/thinkup/session/activate.php?usr=user@example.com&code=dummycode');
-        //$this->showText();
-        $this->assertText('Houston, we have a problem: Account activation failed.');
+          '/webapp/test_installer/thinkup/config.inc.php'));
 
         //Get activation code for user from database
         Utils::setDefaultTimezonePHPini();
@@ -254,16 +248,16 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
             $this->click("Configuration");
             $this->debug("Clicked Configuration");
         }
+        $config = Config::getInstance();
         $this->assertTitle('Configure Your Account | ThinkUp');
         $this->assertText('admin');
 
         // run updates and migrations
-        require 'tests/migration-assertions.php';
+        require dirname(__FILE__) . '/migration-assertions.php';
 
         // build latest  version for testing
-        $migration_sql_dir = THINKUP_ROOT_PATH . 'webapp/install/sql/mysql_migrations/';
+        $migration_sql_dir = THINKUP_WEBAPP_PATH.'install/sql/mysql_migrations/';
         $latest_migration_file = false;
-        $config = Config::getInstance();
 
         $current_version = $config->getValue('THINKUP_VERSION');
         $latest_migration = glob($migration_sql_dir . '*_v' . $LATEST_VERSION .'.sql.migration');
@@ -282,18 +276,25 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
      * Runs migrations list
      */
     private function runMigrations($TMIGRATIONS, $base_version, $fail = false) {
-        require 'tests/migration-assertions.php';
+        require dirname(__FILE__) . '/migration-assertions.php';
+        require THINKUP_WEBAPP_PATH.'config.inc.php';
         foreach($TMIGRATIONS as  $version => $migration_data) {
             $this->debug("Running migration test for version: $version");
             $url = $migration_data['zip_url'];
             $zipfile = $this->getInstall($url, $version, $this->installs_dir);
             $this->debug("unzipping $zipfile");
+            chdir(dirname(__FILE__) . '/../');
             //Extract into test_installer directory and set necessary folder permissions
             exec('cp ' . $zipfile .  ' webapp/test_installer/.;'.
             'cd webapp/test_installer/;unzip -o ' . $zipfile);
 
+            // make sure new code with data directory has correct perms
+            if (file_exists($this->install_dir.'/thinkup/data/')) {
+                exec('chmod -R 777 webapp/test_installer/thinkup/data;');
+            }
+
             // run updates and migrations
-            require 'tests/migration-assertions.php';
+            require dirname(__FILE__) . '/migration-assertions.php';
 
             // update version php file
             if ($version == $LATEST_VERSION) {
@@ -326,7 +327,12 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
             }
             $this->get($this->url.'/test_installer/thinkup/');
             $this->assertText("ThinkUp's database needs an update");
-            $file_token = file_get_contents($this->install_dir.'/thinkup/_lib/view/compiled_view/.htupgrade_token');
+            // token could be in 1 of 2 places, depending on what version is running
+            if (file_exists($this->install_dir.'/thinkup/_lib/view/compiled_view/.htupgrade_token') ) {
+                $file_token = file_get_contents($this->install_dir.'/thinkup/_lib/view/compiled_view/.htupgrade_token');
+            } else {
+                $file_token = file_get_contents($this->install_dir.'/thinkup/data/.htupgrade_token');
+            }
             $token_url = $this->url.'/test_installer/thinkup/install/upgrade.php?upgrade_token=' . $file_token;
             $this->get($token_url);
             $content = $this->getBrowser()->getContent();
@@ -379,8 +385,8 @@ class WebTestOfUpgradeDatabase extends ThinkUpBasicWebTestCase {
                         if (isset($assertion_sql['no_match'])) {
                             $this->assertFalse($data, 'no results for query'); // a table or column deleted?
                         } else {
-                            $this->assertEqual(preg_match($assertion_sql['match'], $data[ $assertion_sql['column'] ]), 1,
-                            $assertion_sql['match'] . ' should match ' .  $data[ $assertion_sql['column'] ]);
+                            $this->assertEqual(preg_match($assertion_sql['match'], $data[ $assertion_sql['column'] ]),
+                            1, $assertion_sql['match'] . ' should match ' .  $data[ $assertion_sql['column'] ]);
                             if ( ! preg_match($assertion_sql['match'], $data[ $assertion_sql['column'] ])) {
                                 error_log("TEST FAIL DEBUGGING:");
                                 error_log('Query for assertion ' . $assertion_sql['query'] . " with match "

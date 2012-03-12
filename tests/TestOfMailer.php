@@ -26,8 +26,8 @@
  * @copyright 2011-2012 Gina Trapani
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfMailer extends ThinkUpBasicUnitTestCase {
 
@@ -38,7 +38,7 @@ class TestOfMailer extends ThinkUpBasicUnitTestCase {
     public function tearDown(){
         parent::tearDown();
         // delete test email file if it exists
-        $test_email = THINKUP_WEBAPP_PATH . '_lib/view/compiled_view' . Mailer::EMAIL;
+        $test_email = FileDataManager::getDataPath(Mailer::EMAIL);
         if (file_exists($test_email)) {
             unlink($test_email);
         }
@@ -46,20 +46,20 @@ class TestOfMailer extends ThinkUpBasicUnitTestCase {
 
     public function testFromName() {
         $config = Config::getInstance();
-        $config->setValue("app_title", "My Crazy Custom ThinkUp Named Installation");
+        $config->setValue("app_title_prefix", "My Crazy Custom ");
         $_SERVER['HTTP_HOST'] = "my_thinkup_hostname";
         Mailer::mail('you@example.com', 'Testing 123', 'Me worky, yo?');
         $email_body = Mailer::getLastMail();
         $this->debug($email_body);
-        $this->assertPattern('/From: "My Crazy Custom ThinkUp Named Installation" <notifications@my_thinkup_hostname>/',
-        $email_body, 'Headers set to custom application name');
+        $this->assertPattern('/From: "My Crazy Custom ThinkUp" <notifications@my_thinkup_hostname>/',
+        $email_body);
 
-        $config->setValue("app_title", "My Other TU App Install");
+        $config->setValue("app_title_prefix", "My Other Installation of ");
         $_SERVER['HTTP_HOST'] = "my_other_hostname";
         Mailer::mail('you@example.com', 'Testing 123', 'Me worky, yo?');
         $email_body = Mailer::getLastMail();
         $this->debug($email_body);
-        $this->assertPattern('/From: "My Other TU App Install" <notifications@my_other_hostname>/',
-        $email_body, 'Headers set to custom application name');
+        $this->assertPattern('/From: "My Other Installation of ThinkUp" <notifications@my_other_hostname>/',
+        $email_body);
     }
 }

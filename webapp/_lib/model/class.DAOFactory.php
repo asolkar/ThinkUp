@@ -46,7 +46,7 @@ class DAOFactory {
      */
     static $dao_mapping = array (
     //Test DAO
-        'TestDAO' => array( 
+        'TestDAO' => array(
     //MySQL Version
             'mysql' => 'TestMySQLDAO',
     //faux Version
@@ -120,7 +120,7 @@ class DAOFactory {
     //StreamData DAO
         'StreamDataDAO' => array(
     //MySQL Version
-            'mysql' => 'StreamDataMySQLDAO' ),      
+            'mysql' => 'StreamDataMySQLDAO' ),
     //StreamProc DAO
         'StreamProcDAO' => array(
     //MySQL Version
@@ -152,7 +152,7 @@ class DAOFactory {
     //Option MySQL DAO
         'OptionDAO' => array (
     //MySQL Version
-            'mysql' => 'OptionMySQLDAO'),    
+            'mysql' => 'OptionMySQLDAO'),
     //Backup MySQL DAO
         'BackupDAO' => array (
     //MySQL Version
@@ -180,7 +180,11 @@ class DAOFactory {
     //TableStats MySQL DAO
         'TableStatsDAO' => array (
     //MySQL Version
-            'mysql' => 'TableStatsMySQLDAO')
+            'mysql' => 'TableStatsMySQLDAO'),
+    //ShortLink MySQL DAO
+        'ShortLinkDAO' => array (
+    //MySQL Version
+            'mysql' => 'ShortLinkMySQLDAO')
     );
 
     /*

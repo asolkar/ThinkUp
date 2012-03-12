@@ -30,15 +30,15 @@
  *
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 if (isset($RUNNING_ALL_TESTS) && !$RUNNING_ALL_TESTS) {
-    require_once THINKUP_ROOT_PATH.'webapp/plugins/twitter/extlib/twitteroauth/twitteroauth.php';
+    require_once THINKUP_WEBAPP_PATH.'plugins/twitter/extlib/twitteroauth/twitteroauth.php';
 }
-require_once THINKUP_ROOT_PATH.'webapp/plugins/twitter/model/class.TwitterOAuthThinkUp.php';
-require_once THINKUP_ROOT_PATH.'webapp/plugins/twitter/model/class.TwitterPlugin.php';
-require_once THINKUP_ROOT_PATH.'webapp/plugins/twitter/controller/class.TwitterPluginConfigurationController.php';
+require_once THINKUP_WEBAPP_PATH.'plugins/twitter/model/class.TwitterOAuthThinkUp.php';
+require_once THINKUP_WEBAPP_PATH.'plugins/twitter/model/class.TwitterPlugin.php';
+require_once THINKUP_WEBAPP_PATH.'plugins/twitter/controller/class.TwitterPluginConfigurationController.php';
 
 class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
 
@@ -47,6 +47,7 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
         $webapp = Webapp::getInstance();
         $webapp->registerPlugin('twitter', 'TwitterPlugin');
         $this->builders = self::buildData();
+        $_SERVER['HTTP_HOST'] = "mytesthost";
     }
 
     public function tearDown() {
@@ -61,7 +62,7 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
         $hashed_pass = ThinkUpTestLoginHelper::hashPasswordUsingDeprecatedMethod("oldpassword");
 
         $builders[] = FixtureBuilder::build('owners', array('id'=>1, 'full_name'=>'ThinkUp J. User',
-        'email'=>'me@example.com', 'is_activated'=>1, 'pwd'=>$hashed_pass, 
+        'email'=>'me@example.com', 'is_activated'=>1, 'pwd'=>$hashed_pass,
         'pwd_salt'=> OwnerMySQLDAO::$default_salt, 'api_key' => 'c9089f3c9adaf0186f6ffb1ee8d6501c'));
 
         $builders[] = FixtureBuilder::build('owners', array('id'=>2, 'full_name'=>'ThinkUp J. Admin',
@@ -635,7 +636,7 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
 
     public function testAuthControlInviteUserNoCSRFToken() {
         $this->simulateLogin('me@example.com', false, true);
-        $_SERVER['HTTP_HOST'] = "mytestthinkup/";
+        $_SERVER['HTTP_HOST'] = "mytestthinkup";
         $_SERVER['HTTPS'] = null;
         $_POST['invite'] = 'Create Invitation' ;
 
@@ -649,9 +650,11 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
     }
 
     public function testAuthControlInviteUser() {
+        $cfg = Config::getInstance();
+        $cfg->setValue('site_root_path', '/');
         $this->simulateLogin('me@example.com', false, true);
 
-        $_SERVER['HTTP_HOST'] = "mytestthinkup/";
+        $_SERVER['HTTP_HOST'] = "mytestthinkup";
         $_SERVER['HTTPS'] = null;
         $_POST['invite'] = 'Create Invitation' ;
         $_POST['csrf_token'] = parent::CSRF_TOKEN;
@@ -663,11 +666,11 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
 
         $msgs_array = $v_mgr->getTemplateDataItem('success_msgs');
         $this->assertPattern('/Invitation created!/', $msgs_array['invite']);
-        $this->assertPattern('/http:\/\/mytestthinkup\/tests\/session\/register.php\?code=/', $msgs_array['invite']);
+        $this->assertPattern('/http:\/\/mytestthinkup\/session\/register.php\?code=/', $msgs_array['invite']);
 
         //test HTTPS
         $_SERVER['HTTPS'] = 1;
-        $_SERVER['HTTP_HOST'] = "myotherwtestthinkup/";
+        $_SERVER['HTTP_HOST'] = "myotherwtestthinkup";
         $_POST['invite'] = 'Create Invitation' ;
 
         $controller = new AccountConfigurationController(true);
@@ -677,7 +680,7 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
 
         $msgs_array = $v_mgr->getTemplateDataItem('success_msgs');
         $this->assertPattern('/Invitation created!/', $msgs_array['invite']);
-        $this->assertPattern('/https:\/\/myotherwtestthinkup\/tests\/session\/register.php\?code=/',
+        $this->assertPattern('/https:\/\/myotherwtestthinkup\/session\/register.php\?code=/',
         $msgs_array['invite']);
     }
 
@@ -750,16 +753,16 @@ class TestOfAccountConfigurationController extends ThinkUpUnitTestCase {
 
     private function buildRSSData() {
         $builders[] = FixtureBuilder::build('owners', array(
-            'id' => 152, 
-            'email' => 'me152@example.com', 
-            'pwd' => 'XXX', 
+            'id' => 152,
+            'email' => 'me152@example.com',
+            'pwd' => 'XXX',
             'is_activated' => 1,
             'api_key' => 'c9089f3c9adaf0186f6ffb1ee8d6501c'
             ));
             $builders[] = FixtureBuilder::build('owners', array(
-            'id' => 153, 
-            'email' => 'me153+checkurlencoding@example.com', 
-            'pwd' => 'XXX', 
+            'id' => 153,
+            'email' => 'me153+checkurlencoding@example.com',
+            'pwd' => 'XXX',
             'is_activated' => 1,
             'api_key' => 'c9089f3c9adaf0186f6ffb1ee8d6501c'
             ));

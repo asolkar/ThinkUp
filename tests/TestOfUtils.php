@@ -27,38 +27,20 @@
  * @copyright 2009-2012 Gina Trapani, Guillaume Boudreau
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfUtils extends ThinkUpBasicUnitTestCase {
-
-    public function testRootPathConstant() {
-        Utils::defineConstantRootPath();
-
-        $this->assertTrue( defined('THINKUP_ROOT_PATH') );
-        $this->assertTrue( is_readable(THINKUP_ROOT_PATH) );
-    }
-
-    public function testWebappPathConstant() {
-        Utils::defineConstantWebappPath();
-
-        $this->assertTrue( defined('THINKUP_WEBAPP_PATH') );
-        $this->assertTrue( is_readable(THINKUP_WEBAPP_PATH) );
-    }
-
-    public function testBaseUrlConstant() {
-        Utils::defineConstantBaseUrl();
-
-        $this->assertTrue( defined('THINKUP_BASE_URL') );
-    }
 
     public function testgetPluginViewDirectory() {
         $config = Config::getInstance();
         $path = Utils::getPluginViewDirectory('twitter');
-        $this->assertEqual($path, $config->getValue('source_root_path').'webapp/plugins/twitter/view/');
+        $this->assertEqual(realpath($path), realpath($config->getValue('source_root_path').
+        '/webapp/plugins/twitter/view/'));
 
         $path = Utils::getPluginViewDirectory('sweetmaryjane');
-        $this->assertEqual($path, $config->getValue('source_root_path').'webapp/plugins/sweetmaryjane/view/');
+        $this->assertEqual(realpath($path), realpath($config->getValue('source_root_path').
+        '/webapp/plugins/sweetmaryjane/view/'));
     }
 
     public function testGetPercentage(){
@@ -220,12 +202,57 @@ class TestOfUtils extends ThinkUpBasicUnitTestCase {
         $expected = array('next_milestone'=>100, 'will_take'=>5);
         $this->assertEqual(Utils::predictNextMilestoneDate(75, 5), $expected);
     }
-
     public function testGetLastSaturday()  {
         $last_saturday = Utils::getLastSaturday('11/11/2011');
         $this->assertEqual('11/5', $last_saturday);
 
         $last_saturday = Utils::getLastSaturday('11/6/2011');
         $this->assertEqual('11/5', $last_saturday);
+    }
+
+    public function testGetSiteRootPathFromFileSystem() {
+        // function assumes $_SERVER['PHP_SELF'] is set
+        // it only is in the web server context so we set it here to test
+        $_SERVER['PHP_SELF'] = Config::getInstance()->getValue('site_root_path');
+        $filesystem_site_root_path = Utils::getSiteRootPathFromFileSystem();
+        $cfg_site_root_path = Config::getInstance()->getValue('site_root_path');
+        $this->assertEqual($filesystem_site_root_path, $cfg_site_root_path);
+    }
+
+    public function testGetApplicationURL() {
+        //no SSL
+        $_SERVER['HTTP_HOST'] = "mytestthinkup";
+        $_SERVER['HTTPS'] = null;
+        $cfg = Config::getInstance();
+        $cfg->setValue('site_root_path', '/my/path/to/thinkup/');
+        $utils_url = Utils::getApplicationURL();
+        $expected_url = 'http://mytestthinkup/my/path/to/thinkup/';
+        $this->assertEqual($utils_url, $expected_url);
+
+        //with SSL
+        $_SERVER['HTTPS'] = true;
+        $utils_url = Utils::getApplicationURL();
+        $expected_url = 'https://mytestthinkup/my/path/to/thinkup/';
+        $this->assertEqual($utils_url, $expected_url);
+
+        //nonstandard port
+        $_SERVER['HTTPS'] = null;
+        $_SERVER['SERVER_PORT'] = 1003;
+        $utils_url = Utils::getApplicationURL();
+        $expected_url = 'http://mytestthinkup:1003/my/path/to/thinkup/';
+        $this->assertEqual($utils_url, $expected_url);
+
+        //standard port 80
+        $_SERVER['HTTPS'] = null;
+        $_SERVER['SERVER_PORT'] = 80;
+        $utils_url = Utils::getApplicationURL();
+        $expected_url = 'http://mytestthinkup/my/path/to/thinkup/';
+        $this->assertEqual($utils_url, $expected_url);
+
+        //no port set
+        $_SERVER['SERVER_PORT'] = '';
+        $utils_url = Utils::getApplicationURL();
+        $expected_url = 'http://mytestthinkup/my/path/to/thinkup/';
+        $this->assertEqual($utils_url, $expected_url);
     }
 }

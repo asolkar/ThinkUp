@@ -236,11 +236,11 @@ class Installer {
      * @return array 'compiled_view'=>true/false, 'cache'=>true/false
      */
     public function checkPermission($perms = array()) {
-        $compile_dir = THINKUP_WEBAPP_PATH . '_lib/view/compiled_view';
-        $cache_dir = $compile_dir."/cache/";
-        $ret = array('compiled_view' => false, 'cache' => false);
-        if ( is_writable($compile_dir) ) {
-            $ret['compiled_view'] = true;
+        $data_dir = THINKUP_WEBAPP_PATH . 'data/';
+        $cache_dir = $data_dir."cache/";
+        $ret = array('data_dir' => false, 'cache' => false);
+        if ( is_writable($data_dir) ) {
+            $ret['data_dir'] = true;
             if (!file_exists($cache_dir)) {
                 $ret['cache'] = mkdir($cache_dir, 0777);
             }
@@ -370,7 +370,7 @@ class Installer {
                     throw new InstallerException("<strong>Oops!</strong><br /> Looks like at least some of ThinkUp's ".
                     "database tables already exist. To install ThinkUp from scratch, drop its tables in the ".
                     "<code>{$config['db_name']}</code> database.<br />".
-                    "To repair your existing tables, click <a href=\"" . THINKUP_BASE_URL . 
+                    "To repair your existing tables, click <a href=\"" . Utils::getSiteRootPathFromFileSystem() .
                     "install/index.php?step=repair&m=db\">here</a>.",
                     self::ERROR_DB_TABLES_EXIST);
                 }
@@ -500,14 +500,14 @@ class Installer {
         $search = array();
         $replace = array();
         foreach (self::$tables as $key => $table) {
-            $search[$key] = 'tu_' . $table;
+            $search[$key] = '/\btu_' . $table . '/';
             $replace[$key] = $table_prefix . $table;
         }
         // additional search for adding two spaces after PRIMARY KEY
-        $search[]  = 'PRIMARY KEY (';
+        $search[]  = '/PRIMARY KEY \(/';
         $replace[] = 'PRIMARY KEY  (';
 
-        $str_query = str_replace($search, $replace, $str_query);
+        $str_query = preg_replace($search, $replace, $str_query);
         return $str_query;
     }
 
@@ -638,7 +638,7 @@ class Installer {
         self::checkSampleConfig($sample_config_filename);
 
         $new_config = array(
-            'site_root_path' => THINKUP_BASE_URL,
+            'site_root_path' => Utils::getSiteRootPathFromFileSystem(),
             'source_root_path' => "dirname( __FILE__ ) . '/'",
             'db_host' => $db_config['db_host'],
             'db_user' => $db_config['db_user'],
@@ -717,7 +717,8 @@ class Installer {
                 'copy / rename from <code>' . THINKUP_WEBAPP_PATH . 'config.sample.inc.php</code> to ' .
                 '<code>' . THINKUP_WEBAPP_PATH . 'config.inc.php</code>. If you don\'t have permission to ' .
                 'do this, you can reinstall ThinkUp by clearing out ThinkUp tables and then clicking '.
-                '<a href="' . THINKUP_BASE_URL . 'install/">here</a>', self::ERROR_CONFIG_FILE_MISSING);
+                '<a href="' . Utils::getSiteRootPathFromFileSystem() . 'install/">here</a>',
+            self::ERROR_CONFIG_FILE_MISSING);
         }
         return $config_file;
     }
@@ -731,7 +732,7 @@ class Installer {
     public function repairerIsDefined($config) {
         if ( !isset($config['repair']) or !$config['repair'] ) {
             throw new InstallerException('To repair ThinkUp\'s installation, please add '.
-            '<code>$THINKUP_CFG[\'repair\'] = true; </code><br>in your configuration file at <code>' . 
+            '<code>$THINKUP_CFG[\'repair\'] = true; </code><br>in your configuration file at <code>' .
             THINKUP_WEBAPP_PATH . 'config.inc.php</code>', self::ERROR_REPAIR_CONFIG);
         }
         return true;

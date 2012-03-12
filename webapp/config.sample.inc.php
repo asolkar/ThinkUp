@@ -3,8 +3,8 @@
 /***  APPLICATION CONFIG                      ***/
 /************************************************/
 
-// Application title
-$THINKUP_CFG['app_title']                 = 'ThinkUp';
+// Application title prefix - 'ThinkUp' will be appended to it in page titles
+$THINKUP_CFG['app_title_prefix']                 = '';
 
 // Public path of thinkup's /webapp/ folder on your web server.
 // For example, if the /webapp/ folder is located at http://yourdomain/thinkup/, set to '/thinkup/'.
@@ -12,6 +12,9 @@ $THINKUP_CFG['site_root_path']            = '/thinkup/webapp/';
 
 // Server path to /thinkup/ source code folder, dirname( __FILE__ ) . '/'; by default
 $THINKUP_CFG['source_root_path']          = dirname( __FILE__ ) . '/';
+
+// Server path to writable data directory, $THINKUP_CFG['source_root_path'] . 'data/' by default
+$THINKUP_CFG['datadir_path']              = $THINKUP_CFG['source_root_path'] . 'data/';
 
 // Your timezone
 $THINKUP_CFG['timezone']                  = 'UTC';
@@ -44,15 +47,18 @@ $THINKUP_CFG['table_prefix']              = 'tu_';
 /************************************************/
 
 // Full server path to crawler.log.
+// $THINKUP_CFG['log_location']              = $THINKUP_CFG['datadir_path'] . '/logs/crawler.log';
 $THINKUP_CFG['log_location']              = false;
 
 // Verbosity of log. 0 is everything, 1 is user messages, 2 is errors only
 $THINKUP_CFG['log_verbosity']             = 0;
 
 // Full server path to stream processor log.
+// $THINKUP_CFG['stream_log_location']       = $THINKUP_CFG['datadir_path'] . '/logs/stream.log';
 $THINKUP_CFG['stream_log_location']       = false;
 
 // Full server path to sql.log. To not log queries, set to null.
+// $THINKUP_CFG['sql_log_location']          = $THINKUP_CFG['datadir_path'] . '/logs/sql.log';
 $THINKUP_CFG['sql_log_location']          = null;
 
 // How many seconds does a query take before it gets logged as a slow query?

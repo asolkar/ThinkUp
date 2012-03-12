@@ -52,6 +52,13 @@ class Config {
      * @var array
      */
     var $config = array();
+
+    /**
+     *
+     * @var array some reasonable defaults if null in config
+     */
+    protected static $defaults = array('app_title_prefix' => '');
+
     /**
      * Private Constructor
      * @param array $vals Optional values to override file config
@@ -61,7 +68,7 @@ class Config {
         if ($vals != null ) {
             $this->config = $vals;
         } else {
-            Utils::defineConstants();
+            Loader::definePathConstants();
             if (file_exists(THINKUP_WEBAPP_PATH . 'config.inc.php')) {
                 require THINKUP_WEBAPP_PATH . 'config.inc.php';
                 $this->config = $THINKUP_CFG;
@@ -71,7 +78,13 @@ class Config {
                 $this->config['THINKUP_VERSION_REQUIRED'] =
                 array('php' => $THINKUP_VERSION_REQUIRED['php'], 'mysql' => $THINKUP_VERSION_REQUIRED['mysql']);
             } else {
-                throw new ConfigurationException("ThinkUp's configuration file does not exist! Try installing ThinkUp.");
+                throw new ConfigurationException("ThinkUp's configuration file does not exist! '.
+                'Try installing ThinkUp.");
+            }
+        }
+        foreach (array_keys(self::$defaults) as $default) {
+            if (!isset($this->config[$default])) {
+                $this->config[$default] = self::$defaults[$default];
             }
         }
     }

@@ -28,11 +28,11 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  *
  */
-require_once 'tests/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once dirname(__FILE__) . '/../../../../tests/init.tests.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 require_once THINKUP_ROOT_PATH.'tests/classes/class.ThinkUpBasicUnitTestCase.php';
-require_once THINKUP_ROOT_PATH. 'webapp/plugins/googleplus/model/class.GooglePlusPlugin.php';
+require_once THINKUP_WEBAPP_PATH.'plugins/googleplus/model/class.GooglePlusPlugin.php';
 
 
 class TestOfGooglePlusPlugin extends ThinkUpUnitTestCase {
@@ -88,7 +88,7 @@ class TestOfGooglePlusPlugin extends ThinkUpUnitTestCase {
 
         $post_tab = $menus['posts-mostplusones'];
         $this->assertEqual($post_tab->name, "Most +1'ed");
-        $this->assertEqual($post_tab->description, "Posts with most +1's");
+        $this->assertEqual($post_tab->description, "Posts with most +1s");
         $post_tab_datasets = $post_tab->getDatasets();
         $post_tab_dataset = $post_tab_datasets[0];
         $this->assertEqual($post_tab_dataset->name, "gplus_posts");

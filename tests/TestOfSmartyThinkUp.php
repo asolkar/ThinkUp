@@ -27,8 +27,8 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfSmartyThinkUp extends ThinkUpBasicUnitTestCase {
 
@@ -54,7 +54,7 @@ class TestOfSmartyThinkUp extends ThinkUpBasicUnitTestCase {
         $this->assertEqual($v_mgr->template_dir[1], '/path/to/thinkup/tests/view');
         $this->assertTrue(sizeof($v_mgr->plugins_dir), 2);
         $this->assertEqual($v_mgr->plugins_dir[0], 'plugins');
-        $this->assertEqual($v_mgr->cache_dir, THINKUP_WEBAPP_PATH.'_lib/view/compiled_view/cache');
+        $this->assertEqual($v_mgr->cache_dir, FileDataManager::getDataPath('compiled_view/cache'));
         $this->assertEqual($v_mgr->cache_lifetime, $cfg->getValue('cache_lifetime'));
         $this->assertTrue($v_mgr->caching);
     }
@@ -66,14 +66,14 @@ class TestOfSmartyThinkUp extends ThinkUpBasicUnitTestCase {
         $cfg = Config::getInstance();
         $cfg->setValue('debug', true);
         $cfg->setValue('cache_lifetime', 1200);
-        $cfg->setValue('app_title', 'Testy ThinkUp Custom Application Name');
+        $cfg->setValue('app_title_prefix', 'Testy ');
         $cfg->setValue('site_root_path', '/my/thinkup/folder/');
         $v_mgr = new SmartyThinkUp();
 
         $v_mgr->assign('test_var_1', "Testing, testing, 123");
         $this->assertEqual($v_mgr->getTemplateDataItem('test_var_1'), "Testing, testing, 123");
 
-        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), 'Testy ThinkUp Custom Application Name');
+        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), ($cfg->getValue('app_title_prefix')  . 'ThinkUp'));
         $this->assertEqual($v_mgr->getTemplateDataItem('logo_link'), '');
         $this->assertEqual($v_mgr->getTemplateDataItem('site_root_path'), '/my/thinkup/folder/');
         $this->assertEqual($v_mgr->cache_lifetime, 1200);
@@ -99,8 +99,8 @@ class TestOfSmartyThinkUp extends ThinkUpBasicUnitTestCase {
     public function testSmartyThinkUpPassedInArray() {
         $cfg_array = array('debug'=>true,
         'site_root_path'=>'/my/thinkup/folder/test',
-        'source_root_path'=>'/Users/gina/Sites/thinkup', 
-        'app_title'=>"My ThinkUp", 
+        'source_root_path'=>'/Users/gina/Sites/thinkup',
+        'app_title_prefix'=>'My ',
         'cache_pages'=>true, 'cache_lifetime'=>1000);
         $v_mgr = new SmartyThinkUp($cfg_array);
 

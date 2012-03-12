@@ -26,9 +26,9 @@
  * @copyright 2009-2012 Gina Trapani
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/web_tester.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/web_tester.php';
 
 class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
 
@@ -37,7 +37,8 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
 
         global $THINKUP_CFG;
         //Make sure test_installer directory exists
-        if (!file_exists($THINKUP_CFG['source_root_path'].'webapp/test_installer/')) {
+        chdir(dirname(__FILE__) . '/../');
+        if (!file_exists($THINKUP_CFG['source_root_path'].'/webapp/test_installer/')) {
             exec('mkdir webapp/test_installer/');
         }
 
@@ -48,12 +49,23 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
         //Extract into test_installer directory and set necessary folder permissions
         exec('cp build/thinkup.zip webapp/test_installer/.;'.
         'cd webapp/test_installer/;'.
-        'unzip thinkup.zip;chmod -R 777 thinkup');
+        'unzip thinkup.zip;chmod -R 777 thinkup;'.
+        'cd thinkup;chmod -R 777 data;');
+    }
+
+    public function setUpCustomFolderInstallation() {
+        //Clean up files from test installation
+        exec('rm -rf webapp/test_installer/*');
+        exec('cp build/thinkup.zip webapp/test_installer/.;'.
+        'cd webapp/test_installer/;'.
+        'unzip thinkup.zip;mv thinkup mythinkupfolder; chmod -R 777 mythinkupfolder;'.
+        'cd mythinkupfolder;chmod -R 777 data;');
     }
 
     public function tearDown() {
         global $THINKUP_CFG;
         //Clean up test installation files
+        chdir(dirname(__FILE__) . '/../');
         exec('rm -rf webapp/test_installer/*');
 
         //Delete test database created during installation process
@@ -73,8 +85,9 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
 
         //Config file doesn't exist
         $this->assertFalse(file_exists($THINKUP_CFG['source_root_path'].
-        'webapp/test_installer/thinkup/config.inc.php'));
+          '/webapp/test_installer/thinkup/config.inc.php'));
 
+        //sleep(1000);
         //Start installation process
         $this->get($this->url.'/test_installer/thinkup/');
         $this->assertTitle("ThinkUp");
@@ -83,6 +96,7 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
         $this->assertText('Great! Your system has everything it needs to run ThinkUp.');
         $this->clickLinkById('nextstep');
 
+        //sleep(1000);
         $this->assertText('Create Your ThinkUp Account');
         $this->setField('full_name', 'ThinkUp J. User');
         $this->setField('site_email', 'user@example.com');
@@ -95,6 +109,7 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
         $this->setField('db_user', $THINKUP_CFG['db_user']);
         $this->setField('db_passwd', $THINKUP_CFG['db_password']);
         $this->setField('db_socket', $THINKUP_CFG['db_socket']);
+        $this->setField('db_prefix', $THINKUP_CFG['table_prefix']);
         $this->clickSubmitByName('Submit');
 
         $this->assertText('ThinkUp has been installed successfully. Check your email account; an account activation '.
@@ -102,8 +117,9 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
 
         //Config file has been written
         $this->assertTrue(file_exists($THINKUP_CFG['source_root_path'].
-        'webapp/test_installer/thinkup/config.inc.php'));
+          '/webapp/test_installer/thinkup/config.inc.php'));
 
+        //sleep(1000);
         //Test bad activation code
         $this->get($this->url.'/test_installer/thinkup/session/activate.php?usr=user@example.com&code=dummycode');
         $this->assertText('Houston, we have a problem: Account activation failed.');
@@ -133,6 +149,49 @@ class WebTestOfInstallation extends ThinkUpBasicWebTestCase {
         $this->click("Settings");
         $this->assertTitle('Configure Your Account | ThinkUp');
         $this->assertText('admin');
+    }
+
+    public function testSuccessfulInstallationInCustomFolder() {
+        self::setUpCustomFolderInstallation();
+        require THINKUP_WEBAPP_PATH.'config.inc.php';
+
+        //Config file doesn't exist
+        $this->assertFalse(file_exists($THINKUP_CFG['source_root_path'].
+          '/webapp/test_installer/mythinkupfolder/config.inc.php'));
+
+        //sleep(1000);
+        //Start installation process
+        $this->get($this->url.'/test_installer/mythinkupfolder/');
+        $this->assertTitle("ThinkUp");
+        $this->assertText('ThinkUp\'s configuration file does not exist! Try installing ThinkUp.');
+        $this->clickLink("installing ThinkUp.");
+        $this->assertText('Great! Your system has everything it needs to run ThinkUp.');
+        $this->clickLinkById('nextstep');
+
+        //sleep(1000);
+        $this->assertText('Create Your ThinkUp Account');
+        $this->setField('full_name', 'ThinkUp J. User');
+        $this->setField('site_email', 'user@example.com');
+        $this->setField('password', 'secret12345');
+        $this->setField('confirm_password', 'secret12345');
+        $this->setField('timezone', 'America/Los_Angeles');
+
+        $this->setField('db_host', $THINKUP_CFG['db_host']);
+        $this->setField('db_name', $this->test_database_name);
+        $this->setField('db_user', $THINKUP_CFG['db_user']);
+        $this->setField('db_passwd', $THINKUP_CFG['db_password']);
+        $this->setField('db_socket', $THINKUP_CFG['db_socket']);
+        $this->setField('db_prefix', $THINKUP_CFG['table_prefix']);
+        $this->clickSubmitByName('Submit');
+
+        //$this->showSource();
+        //sleep(1000);
+        $this->assertText('ThinkUp has been installed successfully. Check your email account; an account activation '.
+        'message has been sent.');
+
+        //Config file has been written
+        $this->assertTrue(file_exists($THINKUP_CFG['source_root_path'].
+        '/webapp/test_installer/mythinkupfolder/config.inc.php'));
     }
 
     public function testFieldLevelMessagesForInvalidInputs() {

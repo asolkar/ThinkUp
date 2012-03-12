@@ -29,8 +29,8 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfTestAuthController extends ThinkUpUnitTestCase {
 
@@ -76,6 +76,7 @@ class TestOfTestAuthController extends ThinkUpUnitTestCase {
     public function testIsLoggedIn() {
         $this->simulateLogin('me@example.com');
         $config = Config::getInstance();
+        $config->setValue("app_title_prefix", "Angelina Jolie's ");
         $config->setValue('site_root_path', '/my/path/to/thinkup/');
 
         $controller = new TestAuthController(true);
@@ -84,11 +85,10 @@ class TestOfTestAuthController extends ThinkUpUnitTestCase {
         //test if view variables were set correctly
         $v_mgr = $controller->getViewManager();
         $this->assertEqual($v_mgr->getTemplateDataItem('test'), 'Testing, testing, 123');
-        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), 'ThinkUp');
+        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), 'Angelina Jolie\'s ThinkUp');
 
-        $this->assertEqual($results,
-        '<a href="/my/path/to/thinkup/">ThinkUp</a>: Testing, testing, 123 | Logged in as me@example.com', 
-        "auth controller output when logged in");
+        $this->assertEqual($results, '<a href="/my/path/to/thinkup/">Angelina Jolie\'s ThinkUp</a>: Testing, testing, '.
+        '123 | Logged in as me@example.com');
     }
 
     /**
@@ -124,6 +124,7 @@ class TestOfTestAuthController extends ThinkUpUnitTestCase {
      */
     public function testNoAuthPreAuth() {
         $config = Config::getInstance();
+        $config->setValue("app_title_prefix", "");
         $config->setValue('cache_pages', true);
         $controller = new TestPreAuthController(true);
         $_GET['preauth'] = true;
@@ -139,6 +140,7 @@ class TestOfTestAuthController extends ThinkUpUnitTestCase {
     public function testRegularAuth() {
         $this->simulateLogin('me@example.com');
         $config = Config::getInstance();
+        $config->setValue("app_title_prefix", "");
         $config->setValue('cache_pages', true);
         $controller = new TestPreAuthController(true);
         $_GET['preauth'] = true;

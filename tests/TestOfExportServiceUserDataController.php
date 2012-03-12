@@ -25,12 +25,12 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 if (!class_exists('ExportDAO')) {
-    require_once THINKUP_ROOT_PATH.'webapp/_lib/model/interface.ExportDAO.php';
+    require_once THINKUP_WEBAPP_PATH.'_lib/model/interface.ExportDAO.php';
 }
-require_once THINKUP_ROOT_PATH.'webapp/_lib/model/class.ExportMySQLDAO.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/model/class.ExportMySQLDAO.php';
 
 class TestOfExportServiceUserDataController extends ThinkUpUnitTestCase {
 
@@ -39,7 +39,7 @@ class TestOfExportServiceUserDataController extends ThinkUpUnitTestCase {
         new ExportMySQLDAO();
         $this->config = Config::getInstance();
         $this->pdo = ExportMySQLDAO::$PDO;
-        $this->export_test = THINKUP_WEBAPP_PATH . BackupDAO::CACHE_DIR . '/thinkup_user_export_test.zip';
+        $this->export_test = FileDataManager::getDataPath('thinkup_user_export_test.zip');
 
         $hashed_pass = ThinkUpTestLoginHelper::hashPasswordUsingDeprecatedMethod("secretpassword");
 
@@ -79,7 +79,7 @@ class TestOfExportServiceUserDataController extends ThinkUpUnitTestCase {
     }
 
     private function deleteFile($file) {
-        $file = THINKUP_WEBAPP_PATH . BackupDAO::CACHE_DIR . "/" . $file;
+        $file = FileDataManager::getBackupPath($file);
         if (file_exists($file)) {
             unlink($file);
         }
@@ -145,13 +145,13 @@ class TestOfExportServiceUserDataController extends ThinkUpUnitTestCase {
         }
 
         //verify we have create table file
-        $this->assertTrue($zip_files["/README.txt"]);
-        $this->assertTrue($zip_files["/posts.tmp"]);
-        $this->assertTrue($zip_files["/links.tmp"]);
-        $this->assertTrue($zip_files["/users_from_posts.tmp"]);
-        $this->assertTrue($zip_files["/follows.tmp"]);
-        $this->assertTrue($zip_files["/encoded_locations.tmp"]);
-        $this->assertTrue($zip_files["/favorites.tmp"]);
+        $this->assertTrue(isset($zip_files["/README.txt"]));
+        $this->assertTrue(isset($zip_files["/posts.tmp"]));
+        $this->assertTrue(isset($zip_files["/links.tmp"]));
+        $this->assertTrue(isset($zip_files["/users_from_posts.tmp"]));
+        $this->assertTrue(isset($zip_files["/follows.tmp"]));
+        $this->assertTrue(isset($zip_files["/encoded_locations.tmp"]));
+        $this->assertTrue(isset($zip_files["/favorites.tmp"]));
         $za->close();
     }
 

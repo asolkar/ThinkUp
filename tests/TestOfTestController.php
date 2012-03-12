@@ -28,8 +28,8 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfTestController extends ThinkUpUnitTestCase {
 
@@ -58,6 +58,7 @@ class TestOfTestController extends ThinkUpUnitTestCase {
      */
     public function testControl() {
         $config = Config::getInstance();
+        $config->setValue("app_title_prefix", "Angelina Jolie's ");
         $controller = new TestController(true);
         $results = $controller->go();
 
@@ -65,9 +66,10 @@ class TestOfTestController extends ThinkUpUnitTestCase {
         //test if view variables were set correctly
         $v_mgr = $controller->getViewManager();
         $this->assertEqual($v_mgr->getTemplateDataItem('test'), 'Testing, testing, 123');
-        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), 'ThinkUp');
+        $this->assertEqual($v_mgr->getTemplateDataItem('app_title'), "Angelina Jolie's ThinkUp");
+        $this->debug($results);
         $this->assertEqual($results, '<a href="'.$config->getValue('site_root_path').
-        '">ThinkUp</a>: Testing, testing, 123 | Not logged in', "controller output");
+        '">Angelina Jolie\'s ThinkUp</a>: Testing, testing, 123 | Not logged in', "controller output");
     }
 
     /**

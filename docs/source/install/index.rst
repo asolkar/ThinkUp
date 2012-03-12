@@ -7,10 +7,9 @@ everything you need to know to get ThinkUp up and running on your web server.
 .. toctree::
    :maxdepth: 2
 
-   sysreqs
-   hostingproviders
    quickstart
    install
+   advancedconfig
    upgrade
    backup
    perms

@@ -59,7 +59,6 @@ class BitlyAPIAccessor {
         $title = '';
         $error = '';
         if ($this->bitly_api_key != '') {
-            $this->logger->logInfo("Bitly API key set", __METHOD__.','.__LINE__);
             $params = array('shortUrl'=>$u, 'login'=>$this->bitly_username, 'apiKey'=>$this->bitly_api_key,
             'format'=>$this->format);
 
@@ -76,7 +75,8 @@ class BitlyAPIAccessor {
                     $title = $bit_link['data']['info'][0]['title'];
                 }
             } else {
-                $error = (isset($bit_link->status_txt))?$bit_link->status_txt:'No response from http://bit.ly API';
+                $error = (isset($bit_link["status_txt"]))?$bit_link["status_txt"]:
+                'No response from http://bit.ly API';
             }
             //Get expanded link
             $bit_link = $this->apiRequest('expand?', $encoded_params);
@@ -84,16 +84,18 @@ class BitlyAPIAccessor {
                 if (isset($bit_link['data']['expand'][0]['long_url'])) {
                     $expanded_url = $bit_link['data']['expand'][0]['long_url'];
                 } else {
-                    $error = (isset($bit_link->status_txt))?$bit_link->status_txt:'No response from http://bit.ly API';
+                    $error = (isset($bit_link["status_txt?"]))?$bit_link["status_txt"]:
+                    'No response from http://bit.ly API';
                 }
             }
             //Get link clicks
             $bit_link = $this->apiRequest('clicks?', $encoded_params);
             if (isset($bit_link['status_code']) && $bit_link['status_code'] == '200'){
-                if (isset($bit_link['data']['clicks'][0]['global_clicks'])) {
-                    $clicks = $bit_link['data']['clicks'][0]['global_clicks'];
+                if (isset($bit_link['data']['clicks'][0]['user_clicks'])) {
+                    $clicks = $bit_link['data']['clicks'][0]['user_clicks'];
                 } else {
-                    $error = (isset($bit_link->status_txt))?$bit_link->status_txt:'No response from http://bit.ly API';
+                    $error = (isset($bit_link["status_txt"]))?$bit_link["status_txt"]:
+                    'No response from http://bit.ly API';
                 }
             }
         } else {
@@ -108,7 +110,7 @@ class BitlyAPIAccessor {
         //$this->logger->logInfo("Bit.ly API call: $api_call", __METHOD__.','.__LINE__);
 
         $resp = Utils::getURLContents($api_call);
-        $this->logger->logInfo("Bit.ly API call response: ".$resp, __METHOD__.','.__LINE__);
+        //$this->logger->logInfo("Bit.ly API call response: ".$resp, __METHOD__.','.__LINE__);
         if ($resp != false) {
             $bit_link = json_decode($resp, true);
             return $bit_link;

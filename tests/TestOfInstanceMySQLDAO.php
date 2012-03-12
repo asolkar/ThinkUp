@@ -29,8 +29,8 @@
  * @copyright 2009-2012 Gina Trapani, Guillaume Boudreau, Christoffer Viken, Mark Wilkie
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfInstanceMySQLDAO extends ThinkUpUnitTestCase {
     protected $DAO;
@@ -182,7 +182,9 @@ class TestOfInstanceMySQLDAO extends ThinkUpUnitTestCase {
         $this->assertEqual($result->network_user_id, 10);
         $this->assertEqual($result->network_viewer_id, 10);
 
-        $q = "TRUNCATE TABLE tu_instances ";
+        $config = Config::getInstance();
+        $config_array = $config->getValuesArray();
+        $q = "TRUNCATE TABLE " . $config_array['table_prefix'] . "instances ";
         PDODAO::$PDO->exec($q);
 
         //Try empty

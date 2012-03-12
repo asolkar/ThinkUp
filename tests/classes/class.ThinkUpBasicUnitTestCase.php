@@ -28,7 +28,7 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  *
  */
-require_once THINKUP_ROOT_PATH.'webapp/_lib/model/class.Loader.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/model/class.Loader.php';
 
 class ThinkUpBasicUnitTestCase extends UnitTestCase {
     /**
@@ -79,6 +79,14 @@ class ThinkUpBasicUnitTestCase extends UnitTestCase {
         $this->unsetArray($_SERVER);
         $this->unsetArray($_FILES);
         Loader::unregister();
+        $backup_dir = FileDataManager::getBackupPath();
+        if (file_exists($backup_dir)) {
+            try {
+                exec('cd '.$backup_dir.'; rm -rf *');
+                rmdir($backup_dir); // won't delete if has files
+            } catch (Exception $e) {
+            }
+        }
         parent::tearDown();
     }
 
@@ -158,15 +166,9 @@ class ThinkUpBasicUnitTestCase extends UnitTestCase {
     public static function isTestEnvironmentReady() {
         require THINKUP_WEBAPP_PATH.'config.inc.php';
 
-        if (!is_writable(THINKUP_WEBAPP_PATH. '_lib/view/compiled_view')) {
-            $message = "In order to test your ThinkUp installation, ".THINKUP_WEBAPP_PATH. '_lib/view/compiled_view '.
-            "must be writable.";
-        }
-        if (!file_exists(THINKUP_WEBAPP_PATH. '_lib/view/compiled_view/cache')) {
-            if (!mkdir( THINKUP_WEBAPP_PATH. '_lib/view/compiled_view/cache/', 0777)) {
-                $message = "In order to test your ThinkUp installation, ".THINKUP_WEBAPP_PATH.
-                '_lib/view/compiled_view/cache/ must exist and be writable.';
-            }
+        $datadir_path = FileDataManager::getDataPath();
+        if (!is_writable($datadir_path)) {
+            $message = "In order to test your ThinkUp installation, $datadir_path must be writable.";
         }
 
         if ($THINKUP_CFG['log_location'] === false) {
@@ -200,7 +202,7 @@ class ThinkUpBasicUnitTestCase extends UnitTestCase {
 
         if ($THINKUP_CFG['db_name'] != $TEST_DATABASE) {
             $message = "The database name in webapp/config.inc.php does not match \$TEST_DATABASE in ".
-            "tests/config.tests.inc.php. 
+            "tests/config.tests.inc.php.
 In order to test your ThinkUp installation without losing data, these database names must both point to the same ".
 "empty test database.";
         }

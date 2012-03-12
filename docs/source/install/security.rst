@@ -27,26 +27,35 @@ How ThinkUp Handles Sensitive Data
 
 ThinkUp's official distribution adheres to a set of rules and standards for handling sensitive data, such as:
 
-**Passwords.** The only password that ThinkUp stores in its database is each user's ThinkUp account password. This
+Passwords
+^^^^^^^^^
+
+The only password that ThinkUp stores in its database is each user's ThinkUp account password. This
 password is hashed (not stored in clear text). To prevent brute force attacks which attempt to guess this password,
 ThinkUp enforces a :doc:`failed login attempt cap </userguide/accounts/index>`.
 
-**Social network credentials.** ThinkUp and its core plugins do not store passwords to social networks like Facebook
+Social network credentials
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ThinkUp and its core plugins do not store passwords to social networks like Facebook
 or Twitter. Instead, ThinkUp stores OAuth credentials to access these networks. This gives users the ability to
 revoke ThinkUp's access to their data on the originating network's settings.
 
-**Private post and user details.** While ThinkUp collects private posts and data its authorized users have access to on
+Private post and user details
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While ThinkUp collects private posts and data its authorized users have access to on
 the originating network, ThinkUp does not make those posts available to anyone not logged into ThinkUp.
 
-**Facebook data assumptions.** ThinkUp's current Facebook support is a work in progress and Facebook's access
+**Facebook data privacy levels:** ThinkUp's current Facebook support is a work in progress and Facebook's access
 permissions system is complex. As such, ThinkUp marks all posts to a Facebook user's profile private; ThinkUp marks
 all posts to a Facebook page as public. ThinkUp assumes all Facebook users are private.
 
 Only plugins which adhere to these standards will be accepted into the official ThinkUp distribution.
 
 .. warning::
-    If you install third-party plugins which are not included in the ThinkUp distribution, you are taking the risk
-    that they don't adhere to these guidelines.
+    If you install third-party plugins which are not included in the official ThinkUp distribution, you are taking the
+    risk that they don't adhere to these guidelines.
 
 Security Measure ThinkUp's Application Code Puts in Place
 ---------------------------------------------------------
@@ -72,7 +81,8 @@ The ThinkUp development team strongly urges all users to:
 
 **Run ThinkUp on a dedicated server.** On a shared web server, other server users potentially can access PHP session
 files and ThinkUp's configuration file, which contains your database username and password. Install
-ThinkUp on a dedicated (even if virtual) server to prevent unauthorized data access.
+ThinkUp on a dedicated (even if virtual) server to prevent unauthorized data access. Get more information about 
+:doc:`ThinkUp hosting providers </install/quickstart>`.
 
 **Use an encrypted connection.** Run ThinkUp on a web server with https/SSL or only access your ThinkUp installation
 through a VPN or secure proxy, so that no one can "sniff" your ThinkUp password when you log in.
@@ -82,6 +92,10 @@ access permissions to all your MySQL databases. Set up a ThinkUp-specific databa
 ThinkUp database, not any others.
 
 **Make sure no ThinkUp files are writable** except the ones :doc:`required by the application </install/perms>`.
+
+**Move ThinkUp's data directory.** By default ThinkUp's writeable data directory is located in a web-accessible
+folder. Move that folder to a more secure location :doc:`by setting its path in ThinkUp's config file.</install/perms>`
+
 
 **Use strong, unique passwords** for your ThinkUp user account as well as all your social network accounts.
 

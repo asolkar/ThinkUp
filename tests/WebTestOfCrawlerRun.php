@@ -26,9 +26,9 @@
  * @copyright 2009-2012 Gina Trapani
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/web_tester.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/web_tester.php';
 
 class WebTestOfCrawlerRun extends ThinkUpWebTestCase {
 
@@ -49,14 +49,15 @@ class WebTestOfCrawlerRun extends ThinkUpWebTestCase {
 
         $this->click("Log In");
 
-        $this->assertTitle("thinkupapp's Dashboard | ThinkUp");
+        $this->assertTitle("thinkupapp's Dashboard | " . Config::getInstance()->getValue('app_title_prefix') .
+        "ThinkUp");
         $this->assertText('Logged in as admin: me@example.com');
         $this->assertText('thinkupapp');
 
         $this->assertText('1 month ago');
 
         //For the sake of time, set all instances to inactive so the crawler itself doesn't actually run
-        $q = "UPDATE tu_instances SET is_active=0;";
+        $q = "UPDATE #prefix#instances SET is_active=0;";
         $this->testdb_helper->runSQL($q);
 
         $this->click("1 month ago");

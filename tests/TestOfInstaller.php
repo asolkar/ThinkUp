@@ -28,8 +28,8 @@
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
 require_once dirname(__FILE__).'/init.tests.php';
-require_once THINKUP_ROOT_PATH.'webapp/_lib/extlib/simpletest/autorun.php';
-require_once THINKUP_ROOT_PATH.'webapp/config.inc.php';
+require_once THINKUP_WEBAPP_PATH.'_lib/extlib/simpletest/autorun.php';
+require_once THINKUP_WEBAPP_PATH.'config.inc.php';
 
 class TestOfInstaller extends ThinkUpUnitTestCase {
     public function __construct() {
@@ -38,19 +38,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         }
 
         if ( !defined('THINKUP_WEBAPP_PATH') ) {
-            define('THINKUP_WEBAPP_PATH', THINKUP_ROOT_PATH . 'webapp/');
-        }
-
-        if ( !defined('THINKUP_BASE_URL') ) {
-            // Define base URL, the same as $THINKUP_CFG['site_root_path']
-            $current_script_path = explode('/', $_SERVER['PHP_SELF']);
-            array_pop($current_script_path);
-            if ( in_array($current_script_path[count($current_script_path)-1],
-            array('account', 'post', 'session', 'user', 'install')) ) {
-                array_pop($current_script_path);
-            }
-            $current_script_path = implode('/', $current_script_path) . '/';
-            define('THINKUP_BASE_URL', $current_script_path);
+            define('THINKUP_WEBAPP_PATH', THINKUP_ROOT_PATH.'webapp/');
         }
     }
 
@@ -102,7 +90,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
 
     public function testInstallerCheckPermission() {
         $perms = Installer::checkPermission();
-        $this->assertTrue($perms['compiled_view']);
+        $this->assertTrue($perms['data_dir']);
         $this->assertTrue($perms['cache']);
     }
 
@@ -149,6 +137,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         $config->getValue('table_prefix')."instances_twitter, ".
         $config->getValue('table_prefix')."invites," .
         //$config->getValue('table_prefix')."links," .
+        $config->getValue('table_prefix')."links_short," .
         $config->getValue('table_prefix')."mentions," .
         $config->getValue('table_prefix')."mentions_posts, " .
         $config->getValue('table_prefix')."owner_instances, ".
@@ -223,6 +212,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         $config->getValue('table_prefix')."instances, ".
         $config->getValue('table_prefix')."instances_twitter, ".
         $config->getValue('table_prefix')."invites," .
+        $config->getValue('table_prefix')."links_short," .
         $config->getValue('table_prefix')."mentions," .
         $config->getValue('table_prefix')."mentions_posts, " .
         $config->getValue('table_prefix')."owner_instances, ".
@@ -371,6 +361,25 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         }
     }
 
+    public function testInstallerPopulateTablesWithNonStandardPrefix() {
+        $config = Config::getInstance();
+        $non_standard_prefix = 'non_standard_tu_';
+        $config->setValue('table_prefix', $non_standard_prefix);
+        $config_array = $config->getValuesArray();
+
+        $expected_table = $non_standard_prefix . 'instances_twitter';
+
+        $installer = Installer::getInstance();
+        $db = $installer->setDb($config_array);
+        $log_verbose = $installer->populateTables($config_array);
+        $this->assertTrue(isset($log_verbose[$expected_table]));
+
+        $q = sprintf("SHOW TABLES LIKE '%s'", $expected_table);
+        $stmt = PDODAO::$PDO->query($q);
+        $table = $stmt->fetch(PDO::FETCH_NUM);
+        $this->assertEqual($table[0], $expected_table);
+    }
+
     public function testInstallerPopulateTables() {
         $config = Config::getInstance();
         $config_array = $config->getValuesArray();
@@ -394,6 +403,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         $config->getValue('table_prefix')."instances_twitter, ".
         $config->getValue('table_prefix')."invites," .
         $config->getValue('table_prefix')."links," .
+        $config->getValue('table_prefix')."links_short," .
         $config->getValue('table_prefix')."mentions," .
         $config->getValue('table_prefix')."mentions_posts, " .
         $config->getValue('table_prefix')."owner_instances, ".
@@ -476,6 +486,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         $config->getValue('table_prefix')."instances_twitter, ".
         $config->getValue('table_prefix')."invites," .
         $config->getValue('table_prefix')."links," .
+        $config->getValue('table_prefix')."links_short," .
         $config->getValue('table_prefix')."mentions," .
         $config->getValue('table_prefix')."mentions_posts, " .
         $config->getValue('table_prefix')."owner_instances, ".
@@ -538,10 +549,11 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
     public function testGetTablesToInstall(){
         $installer = Installer::getInstance();
         $tables = $installer->getTablesToInstall();
+
         $expected_tables = array('encoded_locations', 'favorites', 'follower_count', 'follows', 'group_member_count',
-        'group_members', 'groups', 'hashtags', 'hashtags_posts', 
-        'instances',  'instances_twitter', 'invites', 'links', 'mentions', 'mentions_posts', 'options', 
-        'owner_instances', 'owners', 'places','places_posts', 
+        'group_members', 'groups', 'hashtags', 'hashtags_posts',
+        'instances',  'instances_twitter', 'invites', 'links', 'links_short', 'mentions', 'mentions_posts', 'options',
+        'owner_instances', 'owners', 'places','places_posts',
         'plugins', 'post_errors', 'posts', 'stream_data', 'stream_procs', 'user_errors', 'users');
         $this->assertIdentical($tables, $expected_tables);
     }
