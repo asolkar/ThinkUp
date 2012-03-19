@@ -39,8 +39,7 @@ $config = Config::getInstance();
 //@TODO: For the testing sake, check if mock class has already been loaded
 //@TODO: Figure out a better way to do this
 if (!class_exists('StatusNetOAuth')) {
-    Utils::defineConstants();
-    require_once THINKUP_WEBAPP_PATH.'plugins/statusnet/extlib/statusnetoauth/statusnetoauth.php';
+    Loader::addSpecialClass('StatusNetOAuth', 'plugins/statusnet/extlib/statusnetoauth/statusnetoauth.php');
 }
 
 $webapp = Webapp::getInstance();
