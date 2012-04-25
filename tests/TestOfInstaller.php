@@ -68,17 +68,18 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
     public function testInstallerCheckVersion() {
         $this->debug("Running testInstallerCheckVersion");
         $installer = Installer::getInstance();
-        $this->assertTrue(Installer::checkVersion());
-        $this->assertFalse(Installer::checkVersion('4'));
+        $this->assertTrue($installer->checkVersion());
+        $this->assertFalse($installer->checkVersion('4'));
 
-        $ver = Installer::getRequiredVersion();
+        $ver = $installer->getRequiredVersion();
         $ver = $ver['php'] + 0.1;
 
-        $this->assertTrue(Installer::checkVersion($ver));
+        $this->assertTrue($installer->checkVersion($ver));
     }
 
     public function testInstallerCheckDependency() {
-        $dependency = Installer::checkDependency();
+        $installer = Installer::getInstance();
+        $dependency = $installer->checkDependency();
         $this->assertTrue($dependency['curl'], 'cURL is installed');
         $this->assertTrue($dependency['gd'], 'gd lib is installed');
         $this->assertTrue($dependency['pdo'], 'pdo lib is installed');
@@ -89,13 +90,15 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
     }
 
     public function testInstallerCheckPermission() {
-        $perms = Installer::checkPermission();
+        $installer = Installer::getInstance();
+        $perms = $installer->checkPermission();
         $this->assertTrue($perms['data_dir']);
         $this->assertTrue($perms['cache']);
     }
 
     public function testInstallerCheckPath() {
-        $this->assertTrue(Installer::checkPath(array('source_root_path' => THINKUP_ROOT_PATH,
+        $installer = Installer::getInstance();
+        $this->assertTrue($installer->checkPath(array('source_root_path' => THINKUP_ROOT_PATH,
         'smarty_path' => THINKUP_WEBAPP_PATH . '_lib/extlib/Smarty-2.6.26/libs/')));
     }
 
@@ -532,7 +535,7 @@ class TestOfInstaller extends ThinkUpUnitTestCase {
         // test repair on healthy and complete tables
         Installer::$show_tables = array();
         $installer->populateTables($config_array);
-        $expected = 'Your ThinkUp tables are <strong class="okay">complete</strong>.';
+        $expected = 'Your ThinkUp table repairs are <strong class="okay">complete</strong>.';
         $messages = $installer->repairTables($config_array);
         $this->assertIdentical($messages['table_complete'], $expected, $messages['table_complete']);
 

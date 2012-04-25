@@ -101,12 +101,16 @@ class SmartyThinkUp extends Smarty {
         $cache_lifetime = isset($config_array['cache_lifetime'])?$config_array['cache_lifetime']:600;
         $debug =  $config_array['debug'];
         Loader::definePathConstants();
+        if (!isset($config_array['timezone'])) {
+            date_default_timezone_set('UTC');
+        }
 
         $this->Smarty();
         $this->template_dir = array( THINKUP_WEBAPP_PATH.'_lib/view', $src_root_path.'tests/view');
         $this->compile_dir = FileDataManager::getDataPath('compiled_view');
         $this->plugins_dir = array('plugins', THINKUP_WEBAPP_PATH.'_lib/view/plugins/');
         $this->cache_dir = $this->compile_dir . '/cache';
+        $this->compile_check = $config_array['debug'];
         $this->caching = ($cache_pages)?1:0;
         $this->cache_lifetime = $cache_lifetime;
         $this->debug = $debug;

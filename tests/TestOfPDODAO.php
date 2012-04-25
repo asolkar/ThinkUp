@@ -63,19 +63,6 @@ class TestOfPDODAO extends ThinkUpUnitTestCase {
         return $builders;
     }
 
-    /*
-     * Test whether the database supports time zones or only offsets
-     */
-    private function isTimeZoneSupported() {
-        $testdao = DAOFactory::getDAO('TestDAO');
-        try {
-            TestMySQLDAO::$PDO->exec("SET time_zone = 'America/Los_Angeles'");
-            return true;
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
-
     public function tearDown() {
         $this->builders = null;
         parent::tearDown();
@@ -121,13 +108,30 @@ class TestOfPDODAO extends ThinkUpUnitTestCase {
         $this->assertEqual($users[1]['user_name'], 'sweetmary');
     }
 
-    public function testBadSql() {
+    public function testBadSqlWithDebug() {
+        $config = Config::getInstance();
+        $orig_debug_setting = $config->getValue('debug');
+
+        //with debug true
+        $config->setValue('debug', true);
         $testdao = DAOFactory::getDAO('TestDAO');
         try {
             $testdao->badSql();
         } catch(PDOException $e) {
-            $this->assertPattern('/Syntax error/', $e->getMessage(), 'should get a Syntax error message');
+            $this->assertPattern('/Syntax error/', $e->getMessage());
         }
+
+        //with debug false
+        $config->setValue('debug', false);
+        $testdao = DAOFactory::getDAO('TestDAO');
+        try {
+            $testdao->badSql();
+        } catch(PDOException $e) {
+            $this->assertPattern(
+            '/Database error!  To see the technical details of what went wrong, set debug = true/', $e->getMessage());
+        }
+
+        $config->setValue('debug', $orig_debug_setting);
     }
 
     public function testBadBinds() {

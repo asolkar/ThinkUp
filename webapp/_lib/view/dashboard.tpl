@@ -60,28 +60,16 @@
 
           {if $data_template}
             {include file=$data_template}
-          {else} <!-- else if $data_template -->
-          
-            {if $hot_posts|@count > 3}
-        <div class="section">
-                <h2>Response Rates</h2>
-                <div class="clearfix article">
-                    {assign var="ra_max" value=0}
-                    {foreach from=$hot_posts key=post_id item=post name=foo}
-                        {assign var="ra_count" value="`$post->favlike_count_cache+$post->reply_count_cache+$post->all_retweets`"}
-                        {if $ra_max < $ra_count}
-                            {assign var="ra_max" value=$ra_count}
-                        {/if}
-                    {/foreach}
-                    {if $instance->network neq "twitter"}
-                        <img width="680" height="280" src="http://chart.googleapis.com/chart?chxs=0,,11&chxt=y&chxl=0:|{foreach from=$hot_posts|@array_reverse key=post_id item=post name=foo}{if $post->post_text}{$post->post_text|replace:'|':''|strip_tags|truncate:50|urlencode}{elseif $post->link->title}{$post->link->title|replace:'|':''|truncate:50|urlencode}{elseif $post->link->url}{$post->link->url|replace:'|':''|truncate:50|urlencode}{else}{$post->pub_date|date_format:"%b %e"}{/if}|{/foreach}&chd=t:{foreach from=$hot_posts key=post_id item=post name=foo}{if $post->favlike_count_cache > 0}{$post->favlike_count_cache}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}|{foreach from=$hot_posts key=post_id item=post name=foo}{if $post->reply_count_cache > 0}{$post->reply_count_cache}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}|{foreach from=$hot_posts key=post_id item=post name=foo}{if $post->all_retweets > 0}{$post->all_retweets}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chds=0,{$ra_max+5}&chbh=a&chco=3E5D9A,3C8ECC,BBCCDD&&chdl={if $instance->network eq 'google+'}%2B1s{else}Likes{/if}|Replies|Shares&chs=700x280&cht=bhs&chm=N*s*,666666,-1,-1,11,,e:2:0">                        
-                    {else}
-                        <img width="680" height="280" src="http://chart.googleapis.com/chart?chxs=0,,11&chxt=y&chxl=0:|{foreach from=$hot_posts|@array_reverse key=post_id item=post name=foo}{$post->post_text|replace:'|':''|truncate:50|urlencode}|{/foreach}&chd=t:{foreach from=$hot_posts key=post_id item=post name=foo}{if $post->all_retweets > 0}{$post->all_retweets}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}|{foreach from=$hot_posts key=post_id item=post name=foo}{if $post->reply_count_cache > 0}{$post->reply_count_cache}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chds=0,{$ra_max+5}&chbh=a&chco=3E5D9A,3C8ECC&chdl=Retweets|Replies&chs=700x280&cht=bhs&chm=N*s*,666666,-1,-1,11,,e:2:0">
-                    {/if}
-                </div>
-        </div>
-            {/if}
+          {else} <!-- else if no $data_template -->
 
+            {if $hot_posts_data}
+                <div class="section">
+                        <h2>Response Rates</h2>
+                        <div class="clearfix article">
+                            <div id="hot_posts"></div>
+                        </div>
+                </div>
+            {/if}
 
             {if $least_likely_followers}
               <div class="clearfix section">
@@ -95,26 +83,18 @@
                 <br /><br /><br />    
                 </div>
                 <div class="clearfix view-all">
-                    <a href="{$site_root_path}?v=followers-leastlikely&u={$instance->network_username}&n={$instance->network}">More..</a>
+                    <a href="{$site_root_path}?v=followers-leastlikely&u={$instance->network_username}&n={$instance->network}">More...</a>
                 </div>
                 </div>
             {/if}
 
-
-            {if $click_stats|@count > 3}
-        <div class="section">
-                <h2>Clickthrough Rates</h2>
-                <div class="clearfix article">
-                {assign var="ra_max" value=0}
-                {foreach from=$click_stats key=post_id item=post name=foo}
-                    {assign var="ra_count" value="`$post.click_count`"}
-                    {if $ra_max < $ra_count}
-                        {assign var="ra_max" value=$ra_count}
-                    {/if}
-                {/foreach}
-                <img width="680" height="280" src="http://chart.googleapis.com/chart?chxs=0,,11&chxt=y&chxl=0:|{foreach from=$click_stats|@array_reverse key=post_id item=post name=foo}{$post.post_text|replace:'|':''|strip_tags|truncate:50|urlencode}|{/foreach}&chd=t:{foreach from=$click_stats key=post_id item=post name=foo}{$post.click_count}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chds=0,{$ra_max+5}&chbh=a&chco=3C8ECC&&chdl=Clicks&chs=700x280&cht=bhs&chm=N*s*,666666,-1,-1,11,,e:2:0">
-                </div>
-        </div>
+            {if $click_stats_data}
+            <div class="section">
+                    <h2>Clickthrough Rates</h2>
+                    <div class="clearfix article">
+                            <div id="click_stats"></div>
+                    </div>
+            </div>
             {/if}
 
             {if $most_replied_to_1wk}
@@ -152,7 +132,7 @@
                     <div class="alert helpful">Not enough data to display chart</div>
                   {else}
                       <div class="article">
-                    <img width="320" height="200" src="http://chart.apis.google.com/chart?chs=320x200&chxt=x,y&chxl=0:|{foreach from=$follower_count_history_by_day.history key=tid item=t name=foo}{$tid|date_format:"%b %d"}|{/foreach}1:|{foreach from=$follower_count_history_by_day.y_axis key=tid item=t name=foo}{$t|number_format}{if !$smarty.foreach.foo.last}|{/if}{/foreach}&cht=bvs&chco=7DD3F0&chd=t:{foreach from=$follower_count_history_by_day.history key=tid item=t name=foo}{if $t > 0}{$t}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chbh=a&chds={$follower_count_history_by_day.min_count},{$follower_count_history_by_day.max_count}&chxr={$follower_count_history_by_day.min_count},{$follower_count_history_by_day.max_count}&chxs=1N*s*&chm=N*s*,666666,0,-1,10,,e::5" />
+                        <div id="follower_count_history_by_day"></div>
                     </div>
                     <div class="view-all">
                     <a href="{$site_root_path}?v={if $instance->network neq 'twitter'}friends{else}followers{/if}&u={$instance->network_username|urlencode}&n={$instance->network|urlencode}">More...</a>
@@ -171,7 +151,7 @@
                       <div class="alert helpful">Not enough data to display chart</div>
                   {else}
                     <div class="article">
-                        <img width="320" height="200" src="http://chart.apis.google.com/chart?chs=320x200&chxt=x,y&chxl=0:|{foreach from=$follower_count_history_by_week.history key=tid item=t name=foo}{$tid|date_format:"%b %d"}|{/foreach}1:|{foreach from=$follower_count_history_by_week.y_axis key=tid item=t name=foo}{$t|number_format}{if !$smarty.foreach.foo.last}|{/if}{/foreach}&cht=bvs&chco=7DD3F0&chd=t:{foreach from=$follower_count_history_by_week.history key=tid item=t name=foo}{if $t > 0}{$t}{else}_{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chbh=a&chds={$follower_count_history_by_week.min_count},{$follower_count_history_by_week.max_count}&chxr={$follower_count_history_by_week.min_count},{$follower_count_history_by_week.max_count}&chxs=1N*s*&chm=N*s*,666666,0,-1,10,,e::5" />
+                        <div id="follower_count_history_by_week"></div>
                     </div>
                     {if $follower_count_history_by_week.milestone and $follower_count_history_by_week.milestone.will_take > 0}
                     <div class="stream-pagination"><small style="color:gray">
@@ -194,26 +174,30 @@
                 {/foreach}
               </div>
             {/if}
-            {if $instance->network eq 'twitter' && $recent_posts|@count > 0 }
-              <div class="section" style="float : left; clear : none; width : 314px;">
+            {if $instance->network eq 'twitter' }
+              <div class="section" style="float : left; clear : none; width : 345px;">
                   <div class="alpha">
                       <h2>Post Types</span></h2>
                       <div class="small prepend article">
-                          <img width="250" height="175" src="http://chart.apis.google.com/chart?chxt=x,y&cht=bhg&chd=t:{$instance->percentage_replies|round},{$instance->percentage_links|round}&&chco=7CC0D7&chls=2.0&chs=250x175&chxl=0:|20%|60%|100%|1:|Broadcaster|Conversationalist&chxp=0,20,60,100&chbh=50" />
+                        <div id="post_types"></div>
                        </div>
                        <div class="stream-pagination"><small style="color:#666;padding:5px;">
-                       {$instance->percentage_replies|round}% posts are replies<br>
+                          {$instance->percentage_replies|round}% posts are replies<br>
                           {$instance->percentage_links|round}% posts contain links
                           </small>
                        </div>
+                       <script>
+                          var replies = {$instance->percentage_replies|round};
+                          var links = {$instance->percentage_links|round};
+                       </script>
                 </div>
             </div>
-                
-            <div class="section" style="float : left; clear : none;margin-left : 10px; width : 380px;">
+
+            <div class="section" style="float : left; clear : none;margin-left : 10px; width : 345px;">
                    <div class="omega">
                         <h2>Client Usage <span class="detail">(all posts)</span></h2>
                         <div class="article">
-                        <img width="350" height="200" src="http://chart.apis.google.com/chart?cht=p&chd=t:{foreach from=$all_time_clients_usage key=name item=num_posts name=foo}{if $num_posts>0}{math equation="round(x/y*100,2)" x=$num_posts y=$all_time_clients_usage|@array_sum}{else}0{/if}{if !$smarty.foreach.foo.last},{/if}{/foreach}&chs=350x200&chl={foreach from=$all_time_clients_usage key=name item=num_posts name=foo}{$name}+({$num_posts}){if !$smarty.foreach.foo.last}|{/if}{/foreach}&chco=7CC0D7,D5F0FC">
+                        <div id="client_usage"></div>
                         </div>
                         <div class="stream-pagination">
                         <small style="color:#666;padding:5px;">Recently posting about {$instance->posts_per_day|round} times a day{if $latest_clients_usage}, mostly using {foreach from=$latest_clients_usage key=name item=num_posts name=foo}{$name}{if !$smarty.foreach.foo.last} and {/if}{/foreach}{/if}</small>
@@ -222,6 +206,196 @@
               </div>
 
             {/if}
+            <script type="text/javascript">
+                // Load the Visualization API and the standard charts
+                google.load('visualization', '1');
+                // Set a callback to run when the Google Visualization API is loaded.
+                google.setOnLoadCallback(drawCharts);
+
+                {literal}
+                function drawCharts() {
+                {/literal}
+
+                  var follower_count_history_by_day_data = new google.visualization.DataTable(
+                  {$follower_count_history_by_day.vis_data});
+                  var follower_count_history_by_week_data = new google.visualization.DataTable(
+                  {$follower_count_history_by_week.vis_data});
+
+                  var hot_posts_data = new google.visualization.DataTable({$hot_posts_data});
+                  var client_usage_data = new google.visualization.DataTable({$all_time_clients_usage});
+                  var click_stats_data = new google.visualization.DataTable({$click_stats_data});
+
+                  {literal}
+
+                  var formatter = new google.visualization.NumberFormat({fractionDigits: 0});
+                  var formatter_date = new google.visualization.DateFormat({formatType: 'medium'});
+
+                  var hot_posts_chart = new google.visualization.ChartWrapper({
+                      containerId: 'hot_posts',
+                      chartType: 'BarChart',
+                      dataTable: hot_posts_data,
+                      options: {
+                          colors: ['#3e5d9a', '#3c8ecc', '#BBCCDD'],
+                          isStacked: true,
+                          width: 650,
+                          height: 250,
+                          chartArea:{left:300,height:"80%"},
+                          legend: 'bottom',
+                          hAxis: {
+                            textStyle: { color: '#fff', fontSize: 1 }
+                          },
+                          vAxis: {
+                            minValue: 0,
+                            baselineColor: '#ccc',
+                            textStyle: { color: '#999' },
+                            gridlines: { color: '#eee' }
+                          },
+                      }
+                  });
+                  hot_posts_chart.draw();
+                  {/literal}
+
+                  {if $click_stats_data}
+                  {literal}
+                  formatter.format(click_stats_data, 1);
+                  var click_stats_chart = new google.visualization.ChartWrapper({
+                      containerId: 'click_stats',
+                      chartType: 'BarChart',
+                      dataTable: click_stats_data,
+                      options: {
+                          colors: ['#3c8ecc'],
+                          isStacked: true,
+                          width: 650,
+                          height: 250,
+                          chartArea:{left:300,height:"80%"},
+                          legend: 'none',
+                          hAxis: {
+                            textStyle: { color: '#fff', fontSize: 1 }
+                          },
+                          vAxis: {
+                            minValue: 0,
+                            baselineColor: '#ccc',
+                            textStyle: { color: '#999' },
+                            gridlines: { color: '#eee' }
+                          },
+                      }
+                  });
+                  click_stats_chart.draw();
+                  {/literal}
+                  {/if}
+                  
+                  {literal}
+                  formatter.format(follower_count_history_by_day_data, 1);
+                  formatter_date.format(follower_count_history_by_day_data, 0);
+
+                  var follower_count_history_by_day_chart = new google.visualization.ChartWrapper({
+                      containerId: 'follower_count_history_by_day',
+                      chartType: 'LineChart',
+                      dataTable: follower_count_history_by_day_data,
+                      options: {
+                          width: 325,
+                          height: 250,
+                          legend: "none",
+                          interpolateNulls: true,
+                          pointSize: 2,
+                          hAxis: {
+                              baselineColor: '#eee',
+                              format: 'MMM d',
+                              textStyle: { color: '#999' },
+                              gridlines: { color: '#eee' }
+                          },
+                          vAxis: {
+                              baselineColor: '#eee',
+                              textStyle: { color: '#999' },
+                              gridlines: { color: '#eee' }
+                          },
+                      },
+                  });
+                  follower_count_history_by_day_chart.draw();
+
+                  formatter.format(follower_count_history_by_week_data, 1);
+                  formatter_date.format(follower_count_history_by_week_data, 0);
+
+                  var follower_count_history_by_week_chart = new google.visualization.ChartWrapper({
+                      containerId: 'follower_count_history_by_week',
+                      chartType: 'LineChart',
+                      dataTable: follower_count_history_by_week_data,
+                      options: {
+                          width: 325,
+                          height: 250,
+                          legend: "none",
+                          interpolateNulls: true,
+                          pointSize: 2,
+                          hAxis: {
+                              baselineColor: '#eee',
+                              format: 'MMM d',
+                              textStyle: { color: '#999' },
+                              gridlines: { color: '#eee' }
+                          },
+                          vAxis: {
+                              baselineColor: '#eee',
+                              textStyle: { color: '#999' },
+                              gridlines: { color: '#eee' }
+                          },
+                      },
+                  });
+                  follower_count_history_by_week_chart.draw();
+
+                  if (typeof(replies) != 'undefined') {
+                    var post_types = new google.visualization.DataTable();
+                    post_types.addColumn('string', 'Type');
+                    post_types.addColumn('number', 'Percentage');
+                    post_types.addRows([
+                        ['Conversationalist', {v: replies/100, f: replies + '%'}], 
+                        ['Broadcaster', {v: links/100, f: links + '%'}]
+                    ]);
+
+                    var post_type_chart = new google.visualization.ChartWrapper({
+                        containerId: 'post_types',
+                        chartType: 'ColumnChart',
+                        dataTable: post_types,
+                        options: {
+                            colors: ['#3c8ecc'],
+                            width: 300,
+                            height: 200,
+                            legend: 'none',
+                            hAxis: {
+                                minValue: 0,
+                                maxValue: 1,
+                                textStyle: { color: '#000' },
+                            },
+                            vAxis: {
+                                textStyle: { color: '#666' },
+                                gridlines: { color: '#ccc' },
+                                format:'#,###%',
+                                baselineColor: '#ccc',
+                            },
+                        }
+                    });
+                    post_type_chart.draw();
+                  }
+
+                  formatter.format(client_usage_data, 1);
+                  var client_usage_chart = new google.visualization.ChartWrapper({
+                      containerId: 'client_usage',
+                      // chartType: 'ColumnChart',
+                      chartType: 'PieChart',
+                      dataTable: client_usage_data,
+                      options: {
+                          titleTextStyle: {color: '#848884', fontSize: 19},
+                          width: 300,
+                          height: 300,
+                          sliceVisibilityThreshold: 1/100,
+                          chartArea: { width: '100%' },
+                          pieSliceText: 'label',
+                      }
+                  });
+                  client_usage_chart.draw();
+                }
+            
+                  {/literal}
+            </script>
+
           {/if} <!-- end if $data_template -->
         {/if}
 
